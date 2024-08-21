@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, ChangeEvent } from 'react';
 import {
@@ -19,6 +19,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/tr'; // Import the Turkish locale
+import toast from 'react-hot-toast';
 
 // Define the product type
 interface Product {
@@ -79,9 +80,11 @@ export default function ProductPage() {
       );
       setProducts(updatedProducts);
       setEditingIndex(null);
+      toast.success('Ürün başarıyla güncellendi!');
     } else {
       setProducts([...products, { ...currentProduct, id: productIdCounter }]);
       setProductIdCounter(productIdCounter + 1);
+      toast.success('Ürün başarıyla eklendi!');
     }
     setCurrentProduct({
       id: 0,
@@ -121,11 +124,15 @@ export default function ProductPage() {
     });
   };
 
+  const calculateTotalPrice = () => {
+    return products.reduce((total, product) => total + parseFloat(product.price.toString()), 0);
+  };
+
   const columns: GridColDef[] = [
     { field: 'category', headerName: 'Category', width: 150 },
     { field: 'name', headerName: 'Product Name', width: 200 },
-    { field: 'quantity', headerName: 'Quantity', width: 80 },
-    { field: 'price', headerName: 'Price', width: 80 },
+    { field: 'quantity', headerName: 'Quantity', width: 80, type: 'number'},
+    { field: 'price', headerName: 'Price', width: 80, type: 'number'},
     { field: 'info', headerName: 'Info', width: 300 },
     { field: 'date', headerName: 'Date', width: 100 },
     {
@@ -155,7 +162,6 @@ export default function ProductPage() {
     <Container>
       <h1>Add Product</h1>
       <form noValidate autoComplete="off">
-
         <Autocomplete
           options={categories}
           getOptionLabel={(option) => option}
@@ -195,6 +201,7 @@ export default function ProductPage() {
           onChange={handleInputChange}
           sx={{ width: '10%', marginTop: '15px' }}
         />
+        <h4 style={{ display: 'inline-block', marginLeft: '10px', marginTop: '30px' }}>TL</h4>
         <br />
 
         <TextField
@@ -212,7 +219,6 @@ export default function ProductPage() {
             label="Tarih"
             views={['year', 'month', 'day']}
             defaultValue={dayjs().locale('tr')}
-            // value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
             onChange={handleDateChange}
             disabled={useToday}
             sx={{ width: '20%', marginTop: '10px' }}
@@ -247,7 +253,7 @@ export default function ProductPage() {
         Bugünkü eklenen ürünler:
       </Typography>
 
-      <Box sx={{ height: 400, width: '90%' }}>
+      <Box sx={{ height: 300, width: '90%' }}>
         <DataGrid
           rows={products}
           columns={columns}
@@ -256,14 +262,9 @@ export default function ProductPage() {
         />
       </Box>
 
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleAddProduct}
-        style={{ marginTop: '20px' }}
-      >
-        Ürün {editingIndex !== null ? 'Güncelle' : 'Ekle'}
-      </Button>
+      <Typography variant="h6" fontWeight="bold" style={{ padding: 5, marginTop: '20px' }}>
+        Toplam Fiyat: {calculateTotalPrice()} TL
+      </Typography>
     </Container>
   );
 }
