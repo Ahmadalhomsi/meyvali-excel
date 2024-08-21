@@ -120,13 +120,13 @@ export default function ProductPage() {
   const columns: GridColDef[] = [
     { field: 'category', headerName: 'Category', width: 150 },
     { field: 'name', headerName: 'Product Name', width: 200 },
-    { field: 'price', headerName: 'Price', width: 100 },
+    { field: 'price', headerName: 'Price', width: 80 },
     { field: 'info', headerName: 'Info', width: 300 },
-    { field: 'date', headerName: 'Date', width: 150 },
+    { field: 'date', headerName: 'Date', width: 100 },
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 150,
+      width: 80,
       renderCell: (params) => (
         <Box>
           <IconButton
@@ -204,9 +204,10 @@ export default function ProductPage() {
 
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
           <DatePicker
-            label="Select Date"
+            label="Tarih"
             views={['year', 'month', 'day']}
-            value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
+            defaultValue={dayjs().locale('tr')}
+            // value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
             onChange={handleDateChange}
             disabled={useToday}
 
