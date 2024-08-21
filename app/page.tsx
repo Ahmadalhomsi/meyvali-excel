@@ -9,7 +9,8 @@ import {
   Autocomplete,
   Box,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  Typography
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -24,6 +25,7 @@ interface Product {
   id: number;
   category: string | null;
   name: string;
+  quantity: number;
   price: number;
   info: string;
   date: string; // Store date as a string in YYYY-MM-DD format
@@ -52,6 +54,7 @@ export default function ProductPage() {
     id: 0,
     category: null,
     name: '',
+    quantity: 0,
     price: 0,
     info: '',
     date: dayjs().locale('tr').format('DD.MM.YYYY') // Initialize date in Turkish format
@@ -84,6 +87,7 @@ export default function ProductPage() {
       id: 0,
       category: null,
       name: '',
+      quantity: 0,
       price: 0,
       info: '',
       date: dayjs().locale('tr').format('DD.MM.YYYY'), // Reset to today's date
@@ -120,6 +124,7 @@ export default function ProductPage() {
   const columns: GridColDef[] = [
     { field: 'category', headerName: 'Category', width: 150 },
     { field: 'name', headerName: 'Product Name', width: 200 },
+    { field: 'quantity', headerName: 'Quantity', width: 80 },
     { field: 'price', headerName: 'Price', width: 80 },
     { field: 'info', headerName: 'Info', width: 300 },
     { field: 'date', headerName: 'Date', width: 100 },
@@ -150,6 +155,7 @@ export default function ProductPage() {
     <Container>
       <h1>Add Product</h1>
       <form noValidate autoComplete="off">
+
         <Autocomplete
           options={categories}
           getOptionLabel={(option) => option}
@@ -159,7 +165,7 @@ export default function ProductPage() {
           renderInput={(params) => (
             <TextField {...params} label="Category" />
           )}
-          sx={{ width: '30%' }}
+          sx={{ width: '25%', display: 'inline-block' }} // Added display: inline-block
         />
 
         <TextField
@@ -167,9 +173,20 @@ export default function ProductPage() {
           name="name"
           value={currentProduct.name}
           onChange={handleInputChange}
-          sx={{ width: '30%', marginTop: '15px' }}
+          sx={{ width: '25%', marginLeft: '15px' }}
         />
         <br />
+
+        <TextField
+          label="Adet/Kg"
+          name="quantity"
+          type="number"
+          value={currentProduct.quantity}
+          onChange={handleInputChange}
+          sx={{ width: '10%', marginTop: '15px' }}
+        />
+        <br />
+
         <TextField
           label="Price"
           name="price"
@@ -179,6 +196,7 @@ export default function ProductPage() {
           sx={{ width: '10%', marginTop: '15px' }}
         />
         <br />
+
         <TextField
           label="Info"
           name="info"
@@ -189,6 +207,18 @@ export default function ProductPage() {
         />
         <br />
 
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
+          <DatePicker
+            label="Tarih"
+            views={['year', 'month', 'day']}
+            defaultValue={dayjs().locale('tr')}
+            // value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
+            onChange={handleDateChange}
+            disabled={useToday}
+            sx={{ width: '20%', marginTop: '10px' }}
+          />
+        </LocalizationProvider>
+
         <FormControlLabel
           control={
             <Checkbox
@@ -198,23 +228,9 @@ export default function ProductPage() {
               color="primary"
             />
           }
-          label="Today"
-          sx={{ marginTop: '15px' }}
+          label="Bugün"
+          sx={{ marginTop: '15px', marginLeft: '5px' }}
         />
-
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
-          <DatePicker
-            label="Tarih"
-            views={['year', 'month', 'day']}
-            defaultValue={dayjs().locale('tr')}
-            // value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
-            onChange={handleDateChange}
-            disabled={useToday}
-
-            sx={{ width: '20%', marginTop: '10px' }} 
-          />
-        </LocalizationProvider>
-
         <br />
 
         <Button
@@ -223,18 +239,31 @@ export default function ProductPage() {
           onClick={handleAddProduct}
           style={{ marginTop: '20px' }}
         >
-          {editingIndex !== null ? 'Update' : 'Add'} Product
+          Ürün {editingIndex !== null ? 'Güncelle' : 'Ekle'}
         </Button>
       </form>
 
-      <h2 style={{ marginTop: '40px' }}>Product List</h2>
+      <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
+        Bugünkü eklenen ürünler:
+      </Typography>
+
       <Box sx={{ height: 400, width: '90%' }}>
         <DataGrid
           rows={products}
           columns={columns}
           getRowId={(row) => row.id}
+          hideFooter
         />
       </Box>
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleAddProduct}
+        style={{ marginTop: '20px' }}
+      >
+        Ürün {editingIndex !== null ? 'Güncelle' : 'Ekle'}
+      </Button>
     </Container>
   );
 }
