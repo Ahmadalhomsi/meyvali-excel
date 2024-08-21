@@ -1,6 +1,5 @@
 "use client"
 
-// pages/product.tsx
 import { useState, ChangeEvent } from 'react';
 import {
   Container,
@@ -20,7 +19,7 @@ import { Edit, Delete } from '@mui/icons-material';
 
 // Define the product type
 interface Product {
-  category: string;
+  category: string | null;
   name: string;
   price: string;
   info: string;
@@ -46,7 +45,7 @@ const categories = [
 export default function ProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [currentProduct, setCurrentProduct] = useState<Product>({
-    category: '',
+    category: null,
     name: '',
     price: '',
     info: '',
@@ -72,7 +71,7 @@ export default function ProductPage() {
     } else {
       setProducts([...products, currentProduct]);
     }
-    setCurrentProduct({ category: '', name: '', price: '', info: '' });
+    setCurrentProduct({ category: null, name: '', price: '', info: '' });
   };
 
   const handleEditProduct = (index: number) => {
@@ -94,6 +93,7 @@ export default function ProductPage() {
           getOptionLabel={(option) => option}
           value={currentProduct.category}
           onChange={(_, newValue) => setCurrentProduct({ ...currentProduct, category: newValue || '' })}
+          isOptionEqualToValue={(option, value) => option === value}
           renderInput={(params) => (
             <TextField {...params} label="Category" />
           )}
