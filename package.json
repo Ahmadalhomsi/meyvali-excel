@@ -9,11 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@date-io/dayjs": "^3.0.0",
     "@emotion/react": "^11.13.0",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^5.16.7",
     "@mui/material": "^5.16.7",
+    "@mui/x-data-grid": "^7.13.0",
+    "@mui/x-date-pickers": "^7.13.0",
+    "dayjs": "^1.11.13",
+    "install": "^0.13.0",
     "next": "14.2.5",
+    "npm": "^10.8.2",
     "react": "^18",
     "react-dom": "^18",
     "react-hot-toast": "^2.4.1"
