@@ -233,13 +233,13 @@ export default function ProductPage() {
 
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
-    { field: 'category', headerName: 'Katagori', width: 150, editable: true },
-    { field: 'name', headerName: 'Ürün Adı', width: 180, editable: true },
-    { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number', editable: true },
-    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number', editable: true },
-    { field: 'paymentType', headerName: 'Ödeme Türü', width: 100, editable: true },
-    { field: 'info', headerName: 'Ek Bilgi', width: 250, editable: true },
-    { field: 'date', headerName: 'Tarih', width: 100, editable: true },
+    { field: 'category', headerName: 'Katagori', width: 150},
+    { field: 'name', headerName: 'Ürün Adı', width: 180},
+    { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number'},
+    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number'},
+    { field: 'paymentType', headerName: 'Ödeme Türü', width: 100},
+    { field: 'info', headerName: 'Ek Bilgi', width: 250},
+    { field: 'date', headerName: 'Tarih', width: 100},
     {
       field: 'actions',
       headerName: 'İşlemler',
@@ -395,7 +395,7 @@ export default function ProductPage() {
           <CircularProgress />
         </div>
       ) : (
-        <Box sx={{ height: 400, width: '100%' }}>
+        <Box sx={{ height: 300, width: '100%' }}>
           <DataGrid
             rows={products}
             columns={columns}
