@@ -88,7 +88,7 @@ export default function ProductPage() {
       const response = await axios.get(`/api/excel?date=${today}`);
       if (response.status === 200) {
         const productsWithIds = response.data.products.map((product: any, index: number) => ({
-          id: index + 1,
+          id: index + 1,  // or however the ID should be generated
           category: product['Katagori'],
           name: product['Ürün Adı'],
           quantity: parseFloat(product['Adet/Kg']),
@@ -98,6 +98,10 @@ export default function ProductPage() {
           date: product['Tarih']
         }));
         setProducts(productsWithIds);
+
+        // Update the productIdCounter to avoid ID conflicts
+        const maxId = Math.max(...productsWithIds.map((product: { id: any; }) => product.id), 0);
+        setProductIdCounter(maxId + 1);
       }
     } catch (error) {
       console.error('Error fetching today\'s products:', error);
@@ -119,7 +123,7 @@ export default function ProductPage() {
   const handleAddProduct = () => {
     if (editingIndex !== null) {
       const updatedProducts = products.map((product, index) =>
-        index === editingIndex ? currentProduct : product
+        index === editingIndex ? { ...currentProduct, id: products[editingIndex].id } : product
       );
       setProducts(updatedProducts);
       setEditingIndex(null);
@@ -129,6 +133,7 @@ export default function ProductPage() {
       setProductIdCounter(productIdCounter + 1);
       toast.success('Ürün başarıyla eklendi!');
     }
+  
     setCurrentProduct({
       id: 0,
       category: null,
@@ -260,7 +265,7 @@ export default function ProductPage() {
 
   return (
     <Container>
-      <h1>Add Product</h1>
+      <h1>Ürün Ekleme</h1>
       <form noValidate autoComplete="off">
         <Autocomplete
           options={categories}
@@ -403,14 +408,14 @@ export default function ProductPage() {
         Toplam Fiyat: {calculateTotalPrice()} TL
       </Typography>
 
-      <Button
+      {/* <Button
         variant="contained"
         color="primary"
         onClick={handleSave}
         disabled={isSaving}
       >
         {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
-      </Button>
+      </Button> */}
 
       <Button
         variant="contained"
@@ -419,7 +424,7 @@ export default function ProductPage() {
         disabled={isLoading}
         sx={{ marginLeft: '10px' }}
       >
-        {isLoading ? 'Güncelleniyor...' : 'Güncelle'}
+        {isLoading ? 'Kaydediliyor...' : 'Kaydet'}
       </Button>
     </Container>
   );
