@@ -121,19 +121,19 @@ export default function ProductPage() {
   };
 
   const handleAddProduct = () => {
-    if (editingIndex !== null) {
+    if (editingIndex !== null) { // Updating
       const updatedProducts = products.map((product, index) =>
         index === editingIndex ? { ...currentProduct, id: products[editingIndex].id } : product
       );
       setProducts(updatedProducts);
       setEditingIndex(null);
       toast.success('Ürün başarıyla güncellendi!');
-    } else {
+    } else { // Adding
       setProducts([...products, { ...currentProduct, id: productIdCounter }]);
       setProductIdCounter(productIdCounter + 1);
       toast.success('Ürün başarıyla eklendi!');
     }
-  
+
     setCurrentProduct({
       id: 0,
       category: null,
@@ -144,7 +144,7 @@ export default function ProductPage() {
       info: '',
       date: dayjs().locale('tr').format('DD.MM.YYYY'), // Reset to today's date
     });
-    setUseToday(true); // Reset checkbox to true after adding the product
+    // setUseToday(true); // Reset checkbox to true after adding the product
   };
 
   const handleEditProduct = (id: number) => {
@@ -163,7 +163,7 @@ export default function ProductPage() {
   const handleCheckboxChange = () => {
     setUseToday(!useToday);
     if (!useToday) {
-      setCurrentProduct({ ...currentProduct, date: dayjs().locale('tr').format('DD.MM.YYYY') });
+      setCurrentProduct({ ...currentProduct, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date
     }
   };
 
@@ -180,29 +180,29 @@ export default function ProductPage() {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = async () => {
-    if (products.length === 0) {
-      toast.error('Kaydedilecek ürün bulunmamaktadır.');
-      return;
-    }
-    console.log(products);
+  // const handleSave = async () => {
+  //   if (products.length === 0) {
+  //     toast.error('Kaydedilecek ürün bulunmamaktadır.');
+  //     return;
+  //   }
+  //   console.log(products);
 
-    setIsSaving(true);
-    try {
-      const response = await axios.post('/api/excel', { products });
-      if (response.status === 200) {
-        toast.success('Veriler başarıyla kaydedildi!');
-        setProducts([]);
-      } else {
-        toast.error('Veri kaydedilirken bir hata oluştu.');
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  //   setIsSaving(true);
+  //   try {
+  //     const response = await axios.post('/api/excel', { products });
+  //     if (response.status === 200) {
+  //       toast.success('Veriler başarıyla kaydedildi!');
+  //       setProducts([]);
+  //     } else {
+  //       toast.error('Veri kaydedilirken bir hata oluştu.');
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
+  //   } finally {
+  //     setIsSaving(false);
+  //   }
+  // };
 
   const updateProducts = async () => {
     const today = dayjs().format('DD.MM.YYYY');
@@ -336,6 +336,7 @@ export default function ProductPage() {
             label="Tarih"
             views={['year', 'month', 'day']}
             defaultValue={dayjs().locale('tr')}
+            value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
             onChange={handleDateChange}
             disabled={useToday}
             sx={{ width: '20%', marginTop: '10px' }}
