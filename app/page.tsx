@@ -20,6 +20,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 // Define the product type
 interface Product {
@@ -135,6 +136,34 @@ export default function ProductPage() {
 
   const calculateTotalPrice = () => {
     return products.reduce((total, product) => total + parseFloat(product.price.toString()), 0);
+  };
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (products.length === 0) {
+      toast.error('Kaydedilecek ürün bulunmamaktadır.');
+      return;
+    }
+
+    console.log(products);
+    
+
+    setIsSaving(true);
+    try {
+      const response = await axios.post('/api/excel', { products });
+      if (response.status === 200) {
+        toast.success('Veriler başarıyla kaydedildi!');
+        setProducts([]);
+      } else {
+        toast.error('Veri kaydedilirken bir hata oluştu.');
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const columns: GridColDef[] = [
@@ -287,6 +316,16 @@ export default function ProductPage() {
       <Typography variant="h6" fontWeight="bold" style={{ padding: 5, marginTop: '20px' }}>
         Toplam Fiyat: {calculateTotalPrice()} TL
       </Typography>
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleSave}
+        disabled={isSaving}
+        style={{ marginTop: '20px' }}
+      >
+        {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+      </Button>
     </Container>
   );
 }
