@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent } from 'react';
+import { useState, ChangeEvent, useEffect } from 'react';
 import {
   Container,
   TextField,
@@ -11,7 +11,8 @@ import {
   Checkbox,
   FormControlLabel,
   Typography,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -36,7 +37,7 @@ interface Product {
 }
 
 const categories = [
-  'ŞÜT',
+  'SÜT',
   'ET-DANA',
   'ET-KUZU',
   'BEYAZ-ET',
@@ -73,6 +74,38 @@ export default function ProductPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [productIdCounter, setProductIdCounter] = useState<number>(1);
   const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTodayProducts();
+  }, []);
+
+  const fetchTodayProducts = async () => {
+    const today = dayjs().format('DD.MM.YYYY');
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`/api/excel?date=${today}`);
+      if (response.status === 200) {
+        const productsWithIds = response.data.products.map((product: any, index: number) => ({
+          id: index + 1,
+          category: product['Katagori'],
+          name: product['Ürün Adı'],
+          quantity: parseFloat(product['Adet/Kg']),
+          price: parseFloat(product['Fiyat']),
+          paymentType: product['Ödeme Türü'],
+          info: product['Ek Bilgi'],
+          date: product['Tarih']
+        }));
+        setProducts(productsWithIds);
+      }
+    } catch (error) {
+      console.error('Error fetching today\'s products:', error);
+      toast.error('Günün ürünleri alınırken bir hata oluştu.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -137,7 +170,7 @@ export default function ProductPage() {
   };
 
   const calculateTotalPrice = () => {
-    return products.reduce((total, product) => total + parseFloat(product.price.toString()), 0);
+    return products.reduce((total, product) => total + parseFloat(product.price + ""), 0);
   };
 
   const [isSaving, setIsSaving] = useState(false);
@@ -147,9 +180,7 @@ export default function ProductPage() {
       toast.error('Kaydedilecek ürün bulunmamaktadır.');
       return;
     }
-
     console.log(products);
-
 
     setIsSaving(true);
     try {
@@ -168,14 +199,42 @@ export default function ProductPage() {
     }
   };
 
+  const updateProducts = async () => {
+    const today = dayjs().format('DD.MM.YYYY');
+    setIsLoading(true);
+    try {
+      const response = await axios.put('/api/excel', {
+        date: today,
+        products: products.map(p => ({
+          Tarih: p.date,
+          Katagori: p.category,
+          'Ürün Adı': p.name,
+          'Adet/Kg': p.quantity.toString(),
+          Fiyat: p.price.toString(),
+          'Ödeme Türü': p.paymentType,
+          'Ek Bilgi': p.info
+        }))
+      });
+      if (response.status === 200) {
+        toast.success('Ürünler başarıyla güncellendi!');
+      }
+    } catch (error) {
+      console.error('Error updating products:', error);
+      toast.error('Ürünler güncellenirken bir hata oluştu.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const columns: GridColDef[] = [
-    { field: 'category', headerName: 'Katagori', width: 150 },
-    { field: 'name', headerName: 'Ürün Adı', width: 180 },
-    { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number' },
-    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number' },
-    { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
-    { field: 'info', headerName: 'Ek Bilgi', width: 250 },
-    { field: 'date', headerName: 'Tarih', width: 100 },
+    // { field: 'id', headerName: 'ID', width: 2 },
+    { field: 'category', headerName: 'Katagori', width: 150, editable: true },
+    { field: 'name', headerName: 'Ürün Adı', width: 180, editable: true },
+    { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number', editable: true },
+    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number', editable: true },
+    { field: 'paymentType', headerName: 'Ödeme Türü', width: 100, editable: true },
+    { field: 'info', headerName: 'Ek Bilgi', width: 250, editable: true },
+    { field: 'date', headerName: 'Tarih', width: 100, editable: true },
     {
       field: 'actions',
       headerName: 'İşlemler',
@@ -307,17 +366,38 @@ export default function ProductPage() {
       </Typography> */}
 
 
-      <Divider textAlign="left" sx={{ padding: '15px', width: '80%' }}>
-        Bugünkü eklenen ürünler:</Divider>
+      <Divider
+        textAlign="left"
+        sx={{
+          padding: '15px',
+          width: '80%',
+          // '&::before': {
+          //   backgroundColor: 'blue', // Replace with your desired color
+          // },
+          // '::after': {
+          //   backgroundColor: 'blue', // Replace with your desired color
+          //   animation: 'running',
+          // },
+        }}
+      >
+        Bugünkü eklenen ürünler:
+      </Divider>
 
-      <Box sx={{ height: 300, width: '90%' }}>
-        <DataGrid
-          rows={products}
-          columns={columns}
-          getRowId={(row) => row.id}
-          hideFooter
-        />
-      </Box>
+
+      {isLoading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '30px' }}>
+          <CircularProgress />
+        </div>
+      ) : (
+        <Box sx={{ height: 400, width: '100%' }}>
+          <DataGrid
+            rows={products}
+            columns={columns}
+            hideFooter
+          />
+        </Box>
+      )}
+
 
       <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
         Toplam Fiyat: {calculateTotalPrice()} TL
@@ -328,9 +408,18 @@ export default function ProductPage() {
         color="primary"
         onClick={handleSave}
         disabled={isSaving}
-
       >
         {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+      </Button>
+
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={updateProducts}
+        disabled={isLoading}
+        sx={{ marginLeft: '10px' }}
+      >
+        {isLoading ? 'Güncelleniyor...' : 'Güncelle'}
       </Button>
     </Container>
   );
