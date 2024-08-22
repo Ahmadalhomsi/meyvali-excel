@@ -10,7 +10,8 @@ import {
   Box,
   Checkbox,
   FormControlLabel,
-  Typography
+  Typography,
+  Divider
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -118,6 +119,7 @@ export default function ProductPage() {
   const handleDeleteProduct = (id: number) => {
     const updatedProducts = products.filter((product) => product.id !== id);
     setProducts(updatedProducts);
+    toast.success('Ürün başarıyla silindi!');
   };
 
   const handleCheckboxChange = () => {
@@ -147,7 +149,7 @@ export default function ProductPage() {
     }
 
     console.log(products);
-    
+
 
     setIsSaving(true);
     try {
@@ -300,9 +302,13 @@ export default function ProductPage() {
         </Button>
       </form>
 
-      <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
+      {/* <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
         Bugünkü eklenen ürünler:
-      </Typography>
+      </Typography> */}
+
+
+      <Divider textAlign="left" sx={{ padding: '15px', width: '80%' }}>
+        Bugünkü eklenen ürünler:</Divider>
 
       <Box sx={{ height: 300, width: '90%' }}>
         <DataGrid
@@ -313,7 +319,7 @@ export default function ProductPage() {
         />
       </Box>
 
-      <Typography variant="h6" fontWeight="bold" style={{ padding: 5, marginTop: '20px' }}>
+      <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
         Toplam Fiyat: {calculateTotalPrice()} TL
       </Typography>
 
@@ -322,7 +328,7 @@ export default function ProductPage() {
         color="primary"
         onClick={handleSave}
         disabled={isSaving}
-        style={{ marginTop: '20px' }}
+
       >
         {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
       </Button>
