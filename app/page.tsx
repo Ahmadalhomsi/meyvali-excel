@@ -36,20 +36,20 @@ interface Product {
 }
 
 const categories = [
-  'SUT',
+  'ŞÜT',
   'ET-DANA',
   'ET-KUZU',
   'BEYAZ-ET',
   'EKMEK',
   'MARKET PAZAR RAMİ',
-  'PACA',
-  'İSKEMBE',
-  'ambalaj malzemesi',
-  'SU-SİSE',
-  'MESRUBAT',
-  'TUP',
-  'mazot',
-  'Ekstra Eleman',
+  'PAÇA',
+  'İŞKEMBE',
+  'AMBALAJ MALZEMESİ',
+  'SU-ŞİŞE',
+  'MEŞRUBAT',
+  'TÜP',
+  'MAZOT',
+  'EKSTRA ELEMAN',
 ];
 
 const paymentTypes = [

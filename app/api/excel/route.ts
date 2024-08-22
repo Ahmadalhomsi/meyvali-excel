@@ -1,43 +1,3 @@
-// import express from 'express';
-// import path from 'path';
-// import xlsx from 'xlsx';
-
-// const app = express();
-// const publicFolderPath = path.join(__dirname, 'public');
-
-// app.use(express.json());
-
-// app.post('/api/excel', (req, res) => {
-//     // Get the data from the request body
-//     const { data } = req.body;
-
-//     // Load the Excel file
-//     const workbook = xlsx.readFile(path.join(publicFolderPath, 'data.xlsx'));
-
-//     // Select the first sheet
-//     const sheetName = workbook.SheetNames[0];
-//     const sheet = workbook.Sheets[sheetName];
-
-//     // Find the next available row
-//     const range = xlsx.utils.decode_range(sheet['!ref']);
-//     const nextRow = range.e.r + 1;
-
-//     // Write the data to the next available row
-//     Object.keys(data).forEach((key, index) => {
-//         const cell = xlsx.utils.encode_cell({ r: nextRow, c: index });
-//         sheet[cell] = { t: 's', v: data[key] };
-//     });
-
-//     // Save the changes to the Excel file
-//     xlsx.writeFile(workbook, path.join(publicFolderPath, 'data.xlsx'));
-
-//     res.sendStatus(200);
-// });
-
-// app.listen(3000, () => {
-//     console.log('Server is running on port 3000');
-// });
-
 
 import { NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
@@ -79,14 +39,14 @@ export async function POST(request: Request) {
         // Add new products to the worksheet
         products.forEach((product: any) => {
             const row = [
+                product.date,
                 product.category,
                 product.name,
                 product.quantity,
                 product.price,
                 product.paymentType,
                 product.info,
-                product.date
-            ];
+             ];
             XLSX.utils.sheet_add_aoa(worksheet, [row], { origin: rowIndex++ });
         });
 
