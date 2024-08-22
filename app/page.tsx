@@ -28,6 +28,7 @@ interface Product {
   name: string;
   quantity: number;
   price: number;
+  paymentType: string | null;
   info: string;
   date: string; // Store date as a string in YYYY-MM-DD format
 }
@@ -49,6 +50,12 @@ const categories = [
   'Ekstra Eleman',
 ];
 
+const paymentTypes = [
+  'Nakit',
+  'Kredi Kartı',
+  'Havale',
+];
+
 export default function ProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [currentProduct, setCurrentProduct] = useState<Product>({
@@ -57,6 +64,7 @@ export default function ProductPage() {
     name: '',
     quantity: 0,
     price: 0,
+    paymentType: null,
     info: '',
     date: dayjs().locale('tr').format('DD.MM.YYYY') // Initialize date in Turkish format
   });
@@ -92,6 +100,7 @@ export default function ProductPage() {
       name: '',
       quantity: 0,
       price: 0,
+      paymentType: null,
       info: '',
       date: dayjs().locale('tr').format('DD.MM.YYYY'), // Reset to today's date
     });
@@ -129,15 +138,16 @@ export default function ProductPage() {
   };
 
   const columns: GridColDef[] = [
-    { field: 'category', headerName: 'Category', width: 150 },
-    { field: 'name', headerName: 'Product Name', width: 200 },
-    { field: 'quantity', headerName: 'Quantity', width: 80, type: 'number'},
-    { field: 'price', headerName: 'Price', width: 80, type: 'number'},
-    { field: 'info', headerName: 'Info', width: 300 },
-    { field: 'date', headerName: 'Date', width: 100 },
+    { field: 'category', headerName: 'Katagori', width: 150 },
+    { field: 'name', headerName: 'Ürün Adı', width: 180 },
+    { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number' },
+    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number' },
+    { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
+    { field: 'info', headerName: 'Ek Bilgi', width: 250 },
+    { field: 'date', headerName: 'Tarih', width: 100 },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: 'İşlemler',
       width: 80,
       renderCell: (params) => (
         <Box>
@@ -169,13 +179,13 @@ export default function ProductPage() {
           onChange={(_, newValue) => setCurrentProduct({ ...currentProduct, category: newValue || '' })}
           isOptionEqualToValue={(option, value) => option === value}
           renderInput={(params) => (
-            <TextField {...params} label="Category" />
+            <TextField {...params} label="Katagori" />
           )}
           sx={{ width: '25%', display: 'inline-block' }} // Added display: inline-block
         />
 
         <TextField
-          label="Product Name"
+          label="Ürün Adı"
           name="name"
           value={currentProduct.name}
           onChange={handleInputChange}
@@ -194,7 +204,7 @@ export default function ProductPage() {
         <br />
 
         <TextField
-          label="Price"
+          label="Fiyat"
           name="price"
           type="number"
           value={currentProduct.price}
@@ -204,8 +214,20 @@ export default function ProductPage() {
         <h4 style={{ display: 'inline-block', marginLeft: '10px', marginTop: '30px' }}>TL</h4>
         <br />
 
+        <Autocomplete
+          options={paymentTypes}
+          getOptionLabel={(option) => option}
+          value={currentProduct.paymentType}
+          onChange={(_, newValue) => setCurrentProduct({ ...currentProduct, paymentType: newValue })}
+          isOptionEqualToValue={(option, value) => option === value}
+          renderInput={(params) => (
+            <TextField {...params} label="Ödeme Türü" />
+          )}
+          sx={{ width: '20%', marginTop: '15px' }}
+        />
+
         <TextField
-          label="Info"
+          label="Ek Bilgi"
           name="info"
           value={currentProduct.info}
           onChange={handleInputChange}
