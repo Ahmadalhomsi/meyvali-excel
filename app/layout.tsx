@@ -1,9 +1,8 @@
-// app/layout.tsx
 "use client";
 
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import { ClerkProvider } from '@clerk/nextjs';
+import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
 import Layout from '../components/Layout';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -22,7 +21,6 @@ export default function RootLayout({
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
-  
 
   return (
     <ClerkProvider>
@@ -32,7 +30,14 @@ export default function RootLayout({
             <CssBaseline />
             <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
               <Toaster />
-              {children}
+              {/* Protect all pages */}
+              <SignedIn>
+                {children}
+              </SignedIn>
+              <SignedOut>
+                {/* Redirect unsigned users to the sign-in page */}
+                <RedirectToSignIn />
+              </SignedOut>
             </Layout>
           </ThemeProvider>
         </body>
