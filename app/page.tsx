@@ -12,7 +12,8 @@ import {
   FormControlLabel,
   Typography,
   Divider,
-  CircularProgress
+  CircularProgress,
+  Grid,
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -178,31 +179,6 @@ export default function ProductPage() {
     return products.reduce((total, product) => total + parseFloat(product.price + ""), 0);
   };
 
-  const [isSaving, setIsSaving] = useState(false);
-
-  // const handleSave = async () => {
-  //   if (products.length === 0) {
-  //     toast.error('Kaydedilecek ürün bulunmamaktadır.');
-  //     return;
-  //   }
-  //   console.log(products);
-
-  //   setIsSaving(true);
-  //   try {
-  //     const response = await axios.post('/api/excel', { products });
-  //     if (response.status === 200) {
-  //       toast.success('Veriler başarıyla kaydedildi!');
-  //       setProducts([]);
-  //     } else {
-  //       toast.error('Veri kaydedilirken bir hata oluştu.');
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     toast.error('Bir hata oluştu. Lütfen tekrar deneyin.');
-  //   } finally {
-  //     setIsSaving(false);
-  //   }
-  // };
 
   const updateProducts = async () => {
     const today = dayjs().format('DD.MM.YYYY');
@@ -233,13 +209,13 @@ export default function ProductPage() {
 
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
-    { field: 'category', headerName: 'Katagori', width: 150},
-    { field: 'name', headerName: 'Ürün Adı', width: 180},
-    { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number'},
-    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number'},
-    { field: 'paymentType', headerName: 'Ödeme Türü', width: 100},
-    { field: 'info', headerName: 'Ek Bilgi', width: 250},
-    { field: 'date', headerName: 'Tarih', width: 100},
+    { field: 'category', headerName: 'Katagori', width: 150 },
+    { field: 'name', headerName: 'Ürün Adı', width: 180 },
+    { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number' },
+    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number' },
+    { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
+    { field: 'info', headerName: 'Ek Bilgi', width: 250 },
+    { field: 'date', headerName: 'Tarih', width: 100 },
     {
       field: 'actions',
       headerName: 'İşlemler',
@@ -265,103 +241,113 @@ export default function ProductPage() {
 
   return (
     <Container>
-      <h1>Ürün Ekleme</h1>
+      <Typography variant="h4" gutterBottom>Ürün Ekleme</Typography>
       <form noValidate autoComplete="off">
-        <Autocomplete
-          options={categories}
-          getOptionLabel={(option) => option}
-          value={currentProduct.category}
-          onChange={(_, newValue) => setCurrentProduct({ ...currentProduct, category: newValue || '' })}
-          isOptionEqualToValue={(option, value) => option === value}
-          renderInput={(params) => (
-            <TextField {...params} label="Katagori" />
-          )}
-          sx={{ width: '25%', display: 'inline-block' }} // Added display: inline-block
-        />
-
-        <TextField
-          label="Ürün Adı"
-          name="name"
-          value={currentProduct.name}
-          onChange={handleInputChange}
-          sx={{ width: '25%', marginLeft: '15px' }}
-        />
-        <br />
-
-        <TextField
-          label="Adet/Kg"
-          name="quantity"
-          type="number"
-          value={currentProduct.quantity}
-          onChange={handleInputChange}
-          sx={{ width: '10%', marginTop: '15px' }}
-        />
-        <br />
-
-        <TextField
-          label="Fiyat"
-          name="price"
-          type="number"
-          value={currentProduct.price}
-          onChange={handleInputChange}
-          sx={{ width: '10%', marginTop: '15px' }}
-        />
-        <h4 style={{ display: 'inline-block', marginLeft: '10px', marginTop: '30px' }}>TL</h4>
-        <br />
-
-        <Autocomplete
-          options={paymentTypes}
-          getOptionLabel={(option) => option}
-          value={currentProduct.paymentType}
-          onChange={(_, newValue) => setCurrentProduct({ ...currentProduct, paymentType: newValue })}
-          isOptionEqualToValue={(option, value) => option === value}
-          renderInput={(params) => (
-            <TextField {...params} label="Ödeme Türü" />
-          )}
-          sx={{ width: '20%', marginTop: '15px' }}
-        />
-
-        <TextField
-          label="Ek Bilgi"
-          name="info"
-          value={currentProduct.info}
-          onChange={handleInputChange}
-          margin="normal"
-          sx={{ width: '30%' }}
-        />
-        <br />
-
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
-          <DatePicker
-            label="Tarih"
-            views={['year', 'month', 'day']}
-            defaultValue={dayjs().locale('tr')}
-            value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
-            onChange={handleDateChange}
-            disabled={useToday}
-            sx={{ width: '20%', marginTop: '10px' }}
-          />
-        </LocalizationProvider>
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={useToday}
-              onChange={handleCheckboxChange}
-              name="useToday"
-              color="primary"
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={2.6}>
+            <Autocomplete
+              options={categories}
+              getOptionLabel={(option) => option}
+              value={currentProduct.category}
+              onChange={(_, newValue) => setCurrentProduct({ ...currentProduct, category: newValue || '' })}
+              isOptionEqualToValue={(option, value) => option === value}
+              renderInput={(params) => (
+                <TextField {...params} label="Katagori" fullWidth />
+              )}
             />
-          }
-          label="Bugün"
-          sx={{ marginTop: '15px', marginLeft: '5px' }}
-        />
-        <br />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              label="Ürün Adı"
+              name="name"
+              value={currentProduct.name}
+              onChange={handleInputChange}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid item xs={6} sm={3} md={1}>
+            <TextField
+              label="Adet/Kg"
+              name="quantity"
+              type="number"
+              value={currentProduct.quantity}
+              onChange={handleInputChange}
+
+            />
+          </Grid>
+          <Grid item xs={6} sm={3} md={1}>
+            <TextField
+              label="Fiyat"
+              name="price"
+              type="number"
+              value={currentProduct.price}
+              onChange={handleInputChange}
+
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={2}>
+            <Autocomplete
+              options={paymentTypes}
+              getOptionLabel={(option) => option}
+              value={currentProduct.paymentType}
+              onChange={(_, newValue) => setCurrentProduct({ ...currentProduct, paymentType: newValue })}
+              isOptionEqualToValue={(option, value) => option === value}
+              renderInput={(params) => (
+                <TextField {...params} label="Ödeme Türü" />
+              )}
+              sx={{ width: '100%' }}
+            />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              label="Ek Bilgi"
+              name="info"
+              value={currentProduct.info}
+              onChange={handleInputChange}
+              fullWidth
+              sx={{ width: '100%'}}
+            />
+            <br />
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
+              <DatePicker
+                label="Tarih"
+                views={['year', 'month', 'day']}
+                defaultValue={dayjs().locale('tr')}
+                value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
+                onChange={handleDateChange}
+                disabled={useToday}
+                sx={{ width: '40%'}}
+              />
+            </LocalizationProvider>
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={useToday}
+                  onChange={handleCheckboxChange}
+                  name="useToday"
+                  color="primary"
+                />
+              }
+              label="Bugün"
+              sx={{ marginTop: '20px', marginLeft: '5px' }}
+            />
+          </Grid>
+
+        </Grid>
 
         <Button
           variant="contained"
           color="primary"
           onClick={handleAddProduct}
-          style={{ marginTop: '20px' }}
+          sx={{ mt: 2 }}
         >
           Ürün {editingIndex !== null ? 'Güncelle' : 'Ekle'}
         </Button>
@@ -372,61 +358,44 @@ export default function ProductPage() {
       </Typography> */}
 
 
-      <Divider
-        textAlign="left"
-        sx={{
-          padding: '15px',
-          width: '80%',
-          // '&::before': {
-          //   backgroundColor: 'blue', // Replace with your desired color
-          // },
-          // '::after': {
-          //   backgroundColor: 'blue', // Replace with your desired color
-          //   animation: 'running',
-          // },
-        }}
-      >
-        Bugünkü eklenen ürünler:
-      </Divider>
+      <Divider sx={{ my: 1 }}>Bugünkü eklenen ürünler:</Divider>
 
 
       {isLoading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '30px' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
           <CircularProgress />
-        </div>
+        </Box>
       ) : (
-        <Box sx={{ height: 300, width: '100%' }}>
+        <Box sx={{ height: 400, width: '100%' }}>
           <DataGrid
             rows={products}
             columns={columns}
             hideFooter
+            sx={{
+              '& .MuiDataGrid-cell': {
+                whiteSpace: 'normal',
+                lineHeight: 'normal',
+                padding: '8px',
+              },
+            }}
           />
         </Box>
       )}
 
 
-      <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
+      <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
         Toplam Fiyat: {calculateTotalPrice()} TL
       </Typography>
-
-      {/* <Button
-        variant="contained"
-        color="primary"
-        onClick={handleSave}
-        disabled={isSaving}
-      >
-        {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
-      </Button> */}
 
       <Button
         variant="contained"
         color="primary"
         onClick={updateProducts}
         disabled={isLoading}
-        sx={{ marginLeft: '10px' }}
+        sx={{ mt: 2 }}
       >
         {isLoading ? 'Kaydediliyor...' : 'Kaydet'}
       </Button>
-    </Container>
+    </Container >
   );
 }
