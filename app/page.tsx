@@ -288,6 +288,8 @@ export default function ProductPage() {
             />
           </Grid>
 
+          <h4 style={{paddingTop: 10, paddingLeft: 5, fontWeight: 'initial'}}>₺</h4>
+
           <Grid item xs={12} sm={6} md={2}>
             <Autocomplete
               options={paymentTypes}
@@ -337,7 +339,7 @@ export default function ProductPage() {
                 />
               }
               label="Bugün"
-              sx={{ marginTop: '20px', marginLeft: '5px' }}
+              sx={{ marginTop: '10px', marginLeft: '5px' }}
             />
           </Grid>
 

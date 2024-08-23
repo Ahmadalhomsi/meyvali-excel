@@ -23,7 +23,8 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Link from 'next/link';
 import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { usePathname } from 'next/navigation';
-
+import Logo from '../public/logo.svg';
+import Image from 'next/image';
 
 
 interface LayoutProps {
@@ -101,10 +102,21 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
                             <MenuIcon />
                         </IconButton>
                     )}
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        Your App Name
-                    </Typography>
-                    <IconButton sx={{ ml: 1 }} onClick={toggleDarkMode} color="inherit">
+                    <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', mr: 2 }}>
+                        <Image
+                            src={Logo}
+                            alt="App Logo"
+                            width={45} // Set the width of the logo
+                            height={45} // Set the height of the logo
+                            priority={true} // Optional: Load this image first
+                        />
+                    </Box>
+                    {!isMobile && (
+                        <Typography variant='h5' fontWeight='bold' sx={{ flexGrow: 1, Width: '50%' }}>
+                            Meyvalı Lokantası Kontrol Sistemi
+                        </Typography>
+                    )}
+                    <IconButton sx={{ paddingRight: 1.5 }} onClick={toggleDarkMode} color="inherit">
                         {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
                     </IconButton>
                     <SignedOut>
