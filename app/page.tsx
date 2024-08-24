@@ -193,8 +193,9 @@ export default function ProductPage() {
           'Adet/Kg': p.quantity.toString(),
           Fiyat: p.price.toString(),
           'Ödeme Türü': p.paymentType,
-          'Ek Bilgi': p.info
-        }))
+          'Ek Bilgi': p.info,
+        })),
+        totalPrice: calculateTotalPrice()
       });
       if (response.status === 200) {
         toast.success('Ürünler başarıyla güncellendi!');
@@ -267,7 +268,7 @@ export default function ProductPage() {
             />
           </Grid>
 
-          <Grid item xs={6} sm={3} md={1}>
+          <Grid item xs={6} sm={1.5} md={1.2}>
             <TextField
               label="Adet/Kg"
               name="quantity"
@@ -277,20 +278,23 @@ export default function ProductPage() {
 
             />
           </Grid>
-          <Grid item xs={6} sm={3} md={1}>
-            <TextField
-              label="Fiyat"
-              name="price"
-              type="number"
-              value={currentProduct.price}
-              onChange={handleInputChange}
+          <Grid item xs={6} sm={1.5} md={1.4}>
+            <div style={{ display: 'flex' }}>
+              <TextField
+                label="Fiyat"
+                name="price"
+                type="number"
+                value={currentProduct.price}
+                onChange={handleInputChange}
+              />
 
-            />
+              <h4 style={{ paddingLeft: 5, fontWeight: 'initial' }}>₺</h4>
+            </div>
           </Grid>
 
-          <h4 style={{paddingTop: 10, paddingLeft: 5, fontWeight: 'initial'}}>₺</h4>
 
-          <Grid item xs={12} sm={6} md={2}>
+
+          <Grid item xs={12} sm={2} md={2}>
             <Autocomplete
               options={paymentTypes}
               getOptionLabel={(option) => option}
@@ -311,7 +315,7 @@ export default function ProductPage() {
               value={currentProduct.info}
               onChange={handleInputChange}
               fullWidth
-              sx={{ width: '100%'}}
+              sx={{ width: '100%' }}
             />
             <br />
           </Grid>
@@ -325,7 +329,7 @@ export default function ProductPage() {
                 value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
                 onChange={handleDateChange}
                 disabled={useToday}
-                sx={{ width: '40%'}}
+                sx={{ width: '40%' }}
               />
             </LocalizationProvider>
 

@@ -103,7 +103,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: NextRequest) {
     try {
-        const { date, products } = await request.json();
+        const { date, products, totalPrice } = await request.json();
 
         // Define the file path
         const fileName = 'temmuz 2024 dene.xlsx';
