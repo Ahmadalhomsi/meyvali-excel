@@ -101,47 +101,115 @@ export async function POST(request: Request) {
 }
 
 
+
+import ExcelJS from 'exceljs';
+import sharp from 'sharp';
+
 export async function PUT(request: NextRequest) {
     try {
-        const { date, products, totalPrice } = await request.json();
+        const { date, products, totalPrice, imageBuffer } = await request.json();
+
+
 
         // Define the file path
         const fileName = 'temmuz 2024 dene.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
         const filePath = path.join(publicDir, fileName);
 
-        // Read the Excel file
-        const fileBuffer = await fs.readFile(filePath);
-        const workbook = XLSX.read(fileBuffer);
+        // Read the Excel file using ExcelJS
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
 
         // Get the third sheet (index 2)
-        const worksheet = workbook.Sheets[workbook.SheetNames[2]];
+        const worksheet = workbook.getWorksheet(3);
 
-        // Convert the worksheet to JSON
-        let jsonData = XLSX.utils.sheet_to_json(worksheet);
+        if (!worksheet) {
+            throw new Error('Worksheet not found');
+        }
 
-        // Remove all entries for the given date
-        jsonData = jsonData.filter((row: any) => row['Tarih'] !== date);
+        // Find and remove all rows with the given date in the first column
+        let rowToDelete = 1;
+        while (rowToDelete <= worksheet.rowCount) {
+            const cell = worksheet.getCell(`A${rowToDelete}`);
+            if (cell.value === date) {
+                worksheet.spliceRows(rowToDelete, 1);
+            }
+            else {
+                rowToDelete++;
+            }
 
+        }
+
+        console.log(products);
         // Add the new products
-        jsonData = [...jsonData, ...products];
+        products.forEach((product: any) => {
+            // Check the structure of each product
+            console.log('Adding product:', product);
 
-        // Convert back to worksheet
-        const newWorksheet = XLSX.utils.json_to_sheet(jsonData);
+            // Ensure the product is added as an array
+            const productRow = Array.isArray(product) ? product : Object.values(product);
 
-        // Replace the old worksheet with the new one
-        workbook.Sheets[workbook.SheetNames[2]] = newWorksheet;
+            // Add the row to the worksheet
+            worksheet.addRow(productRow);
+        });
 
-        // Write the updated workbook back to the file
-        await fs.writeFile(filePath, XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }));
+        // Find the row index where the first new product was added
+        const firstProductRowIndex = worksheet.actualRowCount - products.length + 1;
 
-        return NextResponse.json({ message: 'Products successfully updated' }, { status: 200 });
+        // Process and add the image if provided
+        if (imageBuffer) {
+            const buffer = Buffer.from(imageBuffer.split(',')[1], 'base64');
+
+            // Use sharp to get image dimensions and resize while maintaining aspect ratio
+            const image = sharp(buffer);
+            const metadata = await image.metadata();
+
+            // Define a maximum size for the image (optional)
+            const maxWidth = 1920;
+            const maxHeight = 1080;
+
+            let { width, height } = metadata;
+
+            if (width && height) {
+                if (width > maxWidth || height > maxHeight) {
+                    const aspectRatio = width / height;
+
+                    if (width > height) {
+                        width = maxWidth;
+                        height = Math.round(width / aspectRatio);
+                    } else {
+                        height = maxHeight;
+                        width = Math.round(height * aspectRatio);
+                    }
+                }
+            }
+
+            // Resize the image using sharp
+            const resizedBuffer = await image.resize(width, height).toBuffer();
+
+            // Add the image to the workbook
+            const imageId = workbook.addImage({
+                buffer: resizedBuffer,
+                extension: 'png', // Change to 'jpeg' if necessary
+            });
+
+            // Place the image in the 7th column ("G") of the same row as the first new product
+            worksheet.addImage(imageId, {
+                tl: { col: 7, row: firstProductRowIndex - 1 }, // Column "G" (7th column, index 6) and the correct row
+                ext: { width: width!, height: height! }, // Set the image dimensions
+                editAs: 'oneCell', // Place the image inside the cell
+            });
+        }
+
+        // Save the updated workbook back to the file
+        await workbook.xlsx.writeFile(filePath);
+
+        return NextResponse.json({ message: 'Products and image successfully updated' }, { status: 200 });
     } catch (error) {
         console.error('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }
-
 
 
 

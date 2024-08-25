@@ -181,6 +181,13 @@ export default function ProductPage() {
 
 
   const updateProducts = async () => {
+
+    if (!image) {
+      toast('Image Not Included!', {
+        icon: '!',
+      });
+    }
+
     const today = dayjs().format('DD.MM.YYYY');
     setIsLoading(true);
     try {
@@ -195,7 +202,8 @@ export default function ProductPage() {
           'Ödeme Türü': p.paymentType,
           'Ek Bilgi': p.info,
         })),
-        totalPrice: calculateTotalPrice()
+        totalPrice: calculateTotalPrice(),
+        imageBuffer: image
       });
       if (response.status === 200) {
         toast.success('Ürünler başarıyla güncellendi!');
@@ -207,6 +215,21 @@ export default function ProductPage() {
       setIsLoading(false);
     }
   };
+
+  // Image upload
+  const [image, setImage] = useState<string | null>(null);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
@@ -240,6 +263,7 @@ export default function ProductPage() {
     },
   ];
 
+
   return (
     <Container>
       <Typography variant="h4" gutterBottom>Ürün Ekleme</Typography>
@@ -255,6 +279,7 @@ export default function ProductPage() {
               renderInput={(params) => (
                 <TextField {...params} label="Katagori" fullWidth />
               )}
+
             />
           </Grid>
 
@@ -308,6 +333,28 @@ export default function ProductPage() {
             />
           </Grid>
 
+          <Box sx={{ display: "flex", alignItems: "center", marginTop: 2, marginLeft: 2 }}>
+            <Button
+              variant="contained"
+              component="label"
+              sx={{ marginRight: 2 }}
+            >
+              Fotoğraf Yükle
+              <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
+            </Button>
+
+            {image && (
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <img
+                  src={image}
+                  alt="Uploaded"
+                  style={{ maxWidth: 60, maxHeight: 60, marginRight: 10, borderRadius: 4 }}
+                />
+              </Box>
+            )}
+          </Box>
+
+
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               label="Ek Bilgi"
@@ -348,6 +395,8 @@ export default function ProductPage() {
           </Grid>
 
         </Grid>
+        <br />
+
 
         <Button
           variant="contained"
