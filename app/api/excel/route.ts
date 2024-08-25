@@ -1,6 +1,5 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import * as XLSX from 'xlsx';
 import path from 'path';
 import { promises as fs } from 'fs';
 
@@ -20,14 +19,28 @@ export async function GET(request: NextRequest) {
         const filePath = path.join(publicDir, fileName);
 
         // Read the Excel file
+        const workbook = new ExcelJS.Workbook();
         const fileBuffer = await fs.readFile(filePath);
-        const workbook = XLSX.read(fileBuffer);
+        await workbook.xlsx.load(fileBuffer);
 
         // Get the third sheet (index 2)
-        const worksheet = workbook.Sheets[workbook.SheetNames[2]];
+        const worksheet = workbook.worksheets[2];
 
         // Convert the worksheet to JSON
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const jsonData: any[] = [];
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber > 1) { // Skip the header row
+                const rowObject: any = {};
+                row.eachCell((cell, colNumber) => {
+                    const headerCell = worksheet.getRow(1).getCell(colNumber);
+                    const header = headerCell.value?.toString();
+                    if (header) {
+                        rowObject[header] = cell.value;
+                    }
+                });
+                jsonData.push(rowObject);
+            }
+        });
 
         // Filter the data based on the provided date
         const filteredProducts = jsonData.filter((product: any) => product['Tarih'] === date);
@@ -105,7 +118,7 @@ export async function PUT(request: NextRequest) {
                 await fs.access(imageFilePath);
                 await fs.unlink(imageFilePath);
                 console.log(`Deleted existing image for date: ${date}`);
-            } catch (err : any) {
+            } catch (err: any) {
                 if (err.code !== 'ENOENT') {
                     console.warn(`Error checking/deleting existing image: ${err.message}`);
                 }

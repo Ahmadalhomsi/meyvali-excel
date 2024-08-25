@@ -184,7 +184,7 @@ export default function ProductPage() {
 
     if (!image) {
       toast('Image Not Included!', {
-        icon: '!',
+        icon: '❗',
       });
     }
 
