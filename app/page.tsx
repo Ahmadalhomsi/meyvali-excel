@@ -180,10 +180,10 @@ export default function ProductPage() {
   };
 
 
-  const updateProducts = async () => {
+  const uploadProducts = async () => {
 
     if (!image) {
-      toast('Image Not Included!', {
+      toast('Fotoğraf Eklenmedi', {
         icon: '❗',
       });
     }
@@ -194,11 +194,11 @@ export default function ProductPage() {
       const response = await axios.put('/api/excel', {
         date: today,
         products: products.map(p => ({
-          Tarih: p.date,
-          Katagori: p.category,
+          'Tarih': p.date,
+          'Katagori': p.category,
           'Ürün Adı': p.name,
-          'Adet/Kg': p.quantity.toString(),
-          Fiyat: p.price.toString(),
+          'Adet/Kg': parseInt(p.quantity + ""),
+          'Fiyat': parseInt(p.price + ""),
           'Ödeme Türü': p.paymentType,
           'Ek Bilgi': p.info,
         })),
@@ -445,7 +445,7 @@ export default function ProductPage() {
       <Button
         variant="contained"
         color="primary"
-        onClick={updateProducts}
+        onClick={uploadProducts}
         disabled={isLoading}
         sx={{ mt: 2 }}
       >

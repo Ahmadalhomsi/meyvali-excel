@@ -64,6 +64,9 @@ export async function PUT(request: NextRequest) {
         const uploadsDir = path.join(publicDir, 'uploads');
         const filePath = path.join(publicDir, fileName);
 
+        console.log(products);
+
+
         // Ensure the uploads directory exists
         try {
             await fs.access(uploadsDir);
@@ -74,10 +77,28 @@ export async function PUT(request: NextRequest) {
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.readFile(filePath);
 
-        const worksheet = workbook.getWorksheet(3);
+        let worksheet = workbook.getWorksheet(3);
 
         if (!worksheet) {
-            throw new Error('Worksheet not found');
+            worksheet = workbook.addWorksheet('Sheet3');
+        }
+
+        // If the worksheet is empty, add the template headers and set column widths
+        if (worksheet.actualRowCount === 0) {
+            const headers = ['Tarih', 'Katagori', 'Ürün Adı', 'Adet/Kg', 'Fiyat', 'Ödeme Türü', 'Ek Bilgi', 'Fotoğraf'];
+            worksheet.addRow(headers);
+
+            // Adjust column widths
+            worksheet.columns = [
+                { width: 12 }, // Tarih
+                { width: 16 }, // Katagori
+                { width: 16 }, // Ürün Adı
+                { width: 8 }, // Adet/Kg
+                { width: 8 }, // Fiyat
+                { width: 15 }, // Ödeme Türü
+                { width: 25 }, // Ek Bilgi
+                { width: 15 }, // Fotoğraf
+            ];
         }
 
         // Find and remove all rows with the given date in the first column
@@ -91,16 +112,19 @@ export async function PUT(request: NextRequest) {
             }
         }
 
-        // Add the new products
-        products.forEach((product: any) => {
+        // Determine the index to start adding new rows
+        const startRow = worksheet.actualRowCount + 1;
+
+        // Add the new products starting from the correct row
+        products.forEach((product: any, index: number) => {
             const productRow = Array.isArray(product) ? product : Object.values(product);
-            worksheet.addRow(productRow);
+            worksheet.insertRow(startRow + index, productRow);
         });
 
-        const firstProductRowIndex = worksheet.actualRowCount - products.length + 1;
+        const firstProductRowIndex = startRow;
 
         // Handle image replacement logic
-        const imageCell = worksheet.getCell(`G${firstProductRowIndex}`);
+        const imageCell = worksheet.getCell(`H${firstProductRowIndex}`); // Changed to column H for Fotoğraf
         let oldImageUrl: string | undefined;
 
         if (imageCell.value && typeof imageCell.value === 'object' && 'hyperlink' in imageCell.value) {
@@ -131,11 +155,56 @@ export async function PUT(request: NextRequest) {
             const imageUrl = `${request.nextUrl.origin}/uploads/${imageFileName}`;
 
             // Update the Excel file with the new image link
-            imageCell.value = { text: 'Image Link', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
+            imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
             imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
 
             console.log(`Updated image for date: ${date}`);
         }
+
+        // ------ ------- Now move to the first worksheet
+
+        const worksheet1 = workbook.getWorksheet(1);
+        if (!worksheet1) {
+            throw new Error('Worksheet 1 not found');
+        }
+
+        // Define the mapping of categories to their corresponding index in the first worksheet
+        const categoryColumnMap: { [key: string]: string } = {
+            'SÜT': 'C',
+            'ET-DANA': 'D',
+            'ET-KUZU': 'E',
+            'BEYAZ-ET': 'F',
+            'EKMEK': 'G',
+            'MARKET PAZAR RAMİ': 'H',
+            'PAÇA': 'I',
+            'İŞKEMBE': 'J',
+            'AMBALAJ MALZEMESİ': 'K',
+            'SU-ŞİŞE': 'L',
+            'MEŞRUBAT': 'M',
+            'TÜP': 'N',
+            'MAZOT': 'O',
+            'EKSTRA ELEMAN': 'P',
+        };
+
+
+
+        // Loop through the products and update the first worksheet
+        products.forEach((product: any) => {
+            const { 'Katagori': category, 'Fiyat': price, 'Ödeme Türü': paymentType } = product;
+
+            const columnLetter = categoryColumnMap[category];
+
+            if (columnLetter) {
+                let targetRow: number;
+                if (paymentType === 'Nakit') {
+                    targetRow = findFirstEmptyCell(worksheet1, columnLetter, 1);
+                } else {
+                    targetRow = findFirstEmptyCell(worksheet1, columnLetter, 34);
+                }
+                const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
+                targetCell.value = price;
+            }
+        });
 
         // Save the updated workbook back to the file
         await workbook.xlsx.writeFile(filePath);
@@ -147,6 +216,19 @@ export async function PUT(request: NextRequest) {
     }
 }
 
+
+// Function to find the first empty cell in a column, starting from a specific row
+function findFirstEmptyCell(worksheet: any, columnLetter: string, startRow: number): number {
+    let rowIndex = startRow;
+    while (rowIndex <= worksheet.rowCount) {
+        const cellValue = worksheet.getCell(`${columnLetter}${rowIndex}`).value;
+        if (cellValue === null || cellValue === undefined || cellValue === '') {
+            return rowIndex;
+        }
+        rowIndex++;
+    }
+    return worksheet.rowCount + 1; // If no empty cell found, return the next row after the last one
+}
 
 
 // Post endpoint to type the data on the excel file that located in the public folder
