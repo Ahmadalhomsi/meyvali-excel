@@ -86,7 +86,7 @@ export default function ProductPage() {
     const today = dayjs().format('DD.MM.YYYY');
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/excel?date=${today}`);
+      const response = await axios.get(`/api/products?date=${today}`);
       if (response.status === 200) {
         const productsWithIds = response.data.products.map((product: any, index: number) => ({
           id: index + 1,  // or however the ID should be generated
@@ -191,7 +191,7 @@ export default function ProductPage() {
     const today = dayjs().format('DD.MM.YYYY');
     setIsLoading(true);
     try {
-      const response = await axios.put('/api/excel', {
+      const response = await axios.put('/api/products', {
         date: today,
         products: products.map(p => ({
           'Tarih': p.date,
