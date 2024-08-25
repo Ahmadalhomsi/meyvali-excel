@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as XLSX from 'xlsx';
 import path from 'path';
-import fs from 'fs/promises';
+import { promises as fs } from 'fs';
 
 export async function GET(request: NextRequest) {
     try {
@@ -39,88 +39,28 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: Request) {
-    try {
-        const data = await request.json();
-        const products = data.products;
-
-        // Define the file path
-        const fileName = 'temmuz 2024 dene.xlsx';
-        const publicDir = path.join(process.cwd(), 'public');
-        const filePath = path.join(publicDir, fileName);
-
-        // Ensure the public directory exists
-        await fs.mkdir(publicDir, { recursive: true });
-
-        let workbook: XLSX.WorkBook;
-        let worksheet: XLSX.WorkSheet;
-
-        try {
-            // Try to read the existing file
-            const fileBuffer = await fs.readFile(filePath);
-            workbook = XLSX.read(fileBuffer);
-            worksheet = workbook.Sheets[workbook.SheetNames[2]];
-
-        } catch (error: any) {
-            console.log('Error reading file:', error);
-            return NextResponse.json({ error: 'An error occurred while reading the file', details: error.message }, { status: 500 });
-
-            // If file doesn't exist or can't be read, create a new workbook
-            // workbook = XLSX.utils.book_new();
-            // worksheet = XLSX.utils.aoa_to_sheet([['Katagori', 'Ürün Adı', 'Adet/Kg', 'Fiyat', 'Ödeme Türü', 'Ek Bilgi', 'Tarih']]);
-            // XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
-        }
-
-        // Get the current number of rows in the worksheet
-        const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
-        let rowIndex = range.e.r + 1;
-
-        // Add new products to the worksheet
-        products.forEach((product: any) => {
-            const row = [
-                product.date,
-                product.category,
-                product.name,
-                product.quantity,
-                product.price,
-                product.paymentType,
-                product.info,
-            ];
-            XLSX.utils.sheet_add_aoa(worksheet, [row], { origin: rowIndex++ });
-        });
-
-        // Write the workbook to a file
-        const fileBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
-        await fs.writeFile(filePath, fileBuffer);
-
-        return NextResponse.json({ message: 'Products successfully added to Excel file' }, { status: 200 });
-    } catch (error: any) {
-        console.error('Error in POST function:', error);
-        return NextResponse.json({ error: 'An error occurred while processing the request', details: error.message }, { status: 500 });
-    }
-}
-
-
-
 import ExcelJS from 'exceljs';
-import sharp from 'sharp';
+
 
 export async function PUT(request: NextRequest) {
     try {
         const { date, products, totalPrice, imageBuffer } = await request.json();
 
-
-
-        // Define the file path
         const fileName = 'temmuz 2024 dene.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
+        const uploadsDir = path.join(publicDir, 'uploads');
         const filePath = path.join(publicDir, fileName);
 
-        // Read the Excel file using ExcelJS
+        // Ensure the uploads directory exists
+        try {
+            await fs.access(uploadsDir);
+        } catch {
+            await fs.mkdir(uploadsDir, { recursive: true });
+        }
+
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.readFile(filePath);
 
-        // Get the third sheet (index 2)
         const worksheet = workbook.getWorksheet(3);
 
         if (!worksheet) {
@@ -133,78 +73,61 @@ export async function PUT(request: NextRequest) {
             const cell = worksheet.getCell(`A${rowToDelete}`);
             if (cell.value === date) {
                 worksheet.spliceRows(rowToDelete, 1);
-            }
-            else {
+            } else {
                 rowToDelete++;
             }
-
         }
 
-        console.log(products);
         // Add the new products
         products.forEach((product: any) => {
-            // Check the structure of each product
-            console.log('Adding product:', product);
-
-            // Ensure the product is added as an array
             const productRow = Array.isArray(product) ? product : Object.values(product);
-
-            // Add the row to the worksheet
             worksheet.addRow(productRow);
         });
 
-        // Find the row index where the first new product was added
         const firstProductRowIndex = worksheet.actualRowCount - products.length + 1;
 
-        // Process and add the image if provided
+        // Handle image replacement logic
+        const imageCell = worksheet.getCell(`G${firstProductRowIndex}`);
+        let oldImageUrl: string | undefined;
+
+        if (imageCell.value && typeof imageCell.value === 'object' && 'hyperlink' in imageCell.value) {
+            oldImageUrl = (imageCell.value as ExcelJS.CellHyperlinkValue).hyperlink;
+        }
+
         if (imageBuffer) {
-            const buffer = Buffer.from(imageBuffer.split(',')[1], 'base64');
+            // Generate a filename based on the date
+            const dateFormatted = date.replace(/\./g, '-'); // Convert '25.08.2024' to '25-08-2024'
+            const imageFileName = `${dateFormatted}.png`;
+            const imageFilePath = path.join(uploadsDir, imageFileName);
 
-            // Use sharp to get image dimensions and resize while maintaining aspect ratio
-            const image = sharp(buffer);
-            const metadata = await image.metadata();
-
-            // Define a maximum size for the image (optional)
-            const maxWidth = 1920;
-            const maxHeight = 1080;
-
-            let { width, height } = metadata;
-
-            if (width && height) {
-                if (width > maxWidth || height > maxHeight) {
-                    const aspectRatio = width / height;
-
-                    if (width > height) {
-                        width = maxWidth;
-                        height = Math.round(width / aspectRatio);
-                    } else {
-                        height = maxHeight;
-                        width = Math.round(height * aspectRatio);
-                    }
+            // Check if an old image exists and delete it
+            try {
+                await fs.access(imageFilePath);
+                await fs.unlink(imageFilePath);
+                console.log(`Deleted existing image for date: ${date}`);
+            } catch (err : any) {
+                if (err.code !== 'ENOENT') {
+                    console.warn(`Error checking/deleting existing image: ${err.message}`);
                 }
             }
 
-            // Resize the image using sharp
-            const resizedBuffer = await image.resize(width, height).toBuffer();
+            // Save the new image
+            const buffer = Buffer.from(imageBuffer.split(',')[1], 'base64');
+            await fs.writeFile(imageFilePath, buffer);
 
-            // Add the image to the workbook
-            const imageId = workbook.addImage({
-                buffer: resizedBuffer,
-                extension: 'png', // Change to 'jpeg' if necessary
-            });
+            const imageUrl = `${request.nextUrl.origin}/uploads/${imageFileName}`;
 
-            // Place the image in the 7th column ("G") of the same row as the first new product
-            worksheet.addImage(imageId, {
-                tl: { col: 7, row: firstProductRowIndex - 1 }, // Column "G" (7th column, index 6) and the correct row
-                ext: { width: width!, height: height! }, // Set the image dimensions
-                editAs: 'oneCell', // Place the image inside the cell
-            });
+            // Update the Excel file with the new image link
+            imageCell.value = { text: 'Image Link', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
+            imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
+
+            console.log(`Updated image for date: ${date}`);
         }
 
         // Save the updated workbook back to the file
         await workbook.xlsx.writeFile(filePath);
 
-        return NextResponse.json({ message: 'Products and image successfully updated' }, { status: 200 });
+        return NextResponse.json({ message: 'Products and image link successfully updated' }, { status: 200 });
     } catch (error) {
         console.error('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
