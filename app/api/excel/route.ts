@@ -197,12 +197,15 @@ export async function PUT(request: NextRequest) {
             if (columnLetter) {
                 let targetRow: number;
                 if (paymentType === 'Nakit') {
-                    targetRow = findFirstEmptyCell(worksheet1, columnLetter, 1);
+                    targetRow = findRowForDate(worksheet1, date, 2); // Start from row 2 for 'Nakit'
+                    const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
+                    const currentValue = targetCell.value || 0;
+                    targetCell.value = (currentValue as number) + price;
                 } else {
-                    targetRow = findFirstEmptyCell(worksheet1, columnLetter, 34);
+                    targetRow = findRowForDate(worksheet1, date, 34); // Start from row 34 for other payment types
+                    const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
+                    targetCell.value = price;
                 }
-                const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-                targetCell.value = price;
             }
         });
 
@@ -217,17 +220,28 @@ export async function PUT(request: NextRequest) {
 }
 
 
-// Function to find the first empty cell in a column, starting from a specific row
-function findFirstEmptyCell(worksheet: any, columnLetter: string, startRow: number): number {
+// Function to find the correct row for the given date, starting from a specific row
+function findRowForDate(worksheet: any, date: string, startRow: number): number {
     let rowIndex = startRow;
     while (rowIndex <= worksheet.rowCount) {
-        const cellValue = worksheet.getCell(`${columnLetter}${rowIndex}`).value;
+        const cellValue = worksheet.getCell(`A${rowIndex}`).value;
         if (cellValue === null || cellValue === undefined || cellValue === '') {
+            worksheet.getCell(`A${rowIndex}`).value = date; // Add the date to the first empty row
+            return rowIndex;
+        }
+        if (cellValue === date) {
+            return rowIndex; // Return the row if the date matches
+        }
+        if (cellValue > date) {
+            // Insert a new row and add the date
+            worksheet.insertRow(rowIndex, [date]);
             return rowIndex;
         }
         rowIndex++;
     }
-    return worksheet.rowCount + 1; // If no empty cell found, return the next row after the last one
+    // If we've reached here, add a new row at the end
+    worksheet.addRow([date]);
+    return worksheet.rowCount;
 }
 
 
