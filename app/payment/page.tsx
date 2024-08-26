@@ -85,7 +85,7 @@ export default function Payment_Calculation() {
       }
     } catch (error) {
       console.error('Error fetching today\'s products:', error);
-      toast.error('Günün ürünleri alınırken bir hata oluştu.');
+      toast.error('Günün Ödemeleri alınırken bir hata oluştu.');
     } finally {
       setIsLoading(false);
     }
@@ -107,11 +107,11 @@ export default function Payment_Calculation() {
       );
       setPayments(updatedProducts);
       setEditingIndex(null);
-      toast.success('Ürün başarıyla güncellendi!');
+      toast.success('Ödeme başarıyla güncellendi!');
     } else { // Adding
       setPayments([...payments, { ...currentPayment, id: productIdCounter }]);
       setProductIdCounter(productIdCounter + 1);
-      toast.success('Ürün başarıyla eklendi!');
+      toast.success('Ödeme başarıyla eklendi!');
     }
 
     setCurrentPayment({
@@ -136,7 +136,7 @@ export default function Payment_Calculation() {
   const handleDeleteProduct = (id: number) => {
     const updatedProducts = payments.filter((product) => product.id !== id);
     setPayments(updatedProducts);
-    toast.success('Ürün başarıyla silindi!');
+    toast.success('Ödeme başarıyla silindi!');
   };
 
   const handleCheckboxChange = () => {
@@ -183,11 +183,11 @@ export default function Payment_Calculation() {
         imageBuffer: image
       });
       if (response.status === 200) {
-        toast.success('Ürünler başarıyla güncellendi!');
+        toast.success('Ödemeler başarıyla güncellendi!');
       }
     } catch (error) {
       console.error('Error updating products:', error);
-      toast.error('Ürünler güncellenirken bir hata oluştu.');
+      toast.error('Ödemeler güncellenirken bir hata oluştu.');
     } finally {
       setIsLoading(false);
     }
@@ -260,7 +260,7 @@ export default function Payment_Calculation() {
             </div>
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={1} md={3}>
             <TextField
               label="Adisyon No"
               name="billNo"
@@ -270,7 +270,7 @@ export default function Payment_Calculation() {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={1} md={3}>
             <TextField
               label="Adisyon Adı"
               name="name"
@@ -280,7 +280,7 @@ export default function Payment_Calculation() {
             />
           </Grid>
 
-          <Grid item xs={12} sm={2} md={2}>
+          <Grid item xs={12} sm={1} md={2}>
             <Autocomplete
               options={paymentTypes}
               getOptionLabel={(option) => option}
@@ -364,12 +364,12 @@ export default function Payment_Calculation() {
           color="primary"
           onClick={handleAddProduct}
         >
-          Ürün {editingIndex !== null ? 'Güncelle' : 'Ekle'}
+          Ödeme {editingIndex !== null ? 'Güncelle' : 'Ekle'}
         </Button>
       </form>
 
       {/* <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
-        Bugünkü eklenen ürünler:
+        Bugünkü eklenen Ödemeler:
       </Typography> */}
 
 
