@@ -16,6 +16,7 @@ import {
     ImageListItemBar,
 } from '@mui/material';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const FileManagementPage = () => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -36,7 +37,7 @@ const FileManagementPage = () => {
             setImages(response.data.images);
         } catch (error) {
             console.error('Error fetching images:', error);
-            alert('Resimler yüklenirken bir hata oluştu.');
+            toast.error('Resimler yüklenirken bir hata oluştu.');
         }
     };
 
@@ -53,7 +54,7 @@ const FileManagementPage = () => {
             link.remove();
         } catch (error) {
             console.error('Error downloading Excel file:', error);
-            alert('Excel dosyası indirilirken bir hata oluştu.');
+            toast.error('Excel dosyası indirilirken bir hata oluştu.');
         } finally {
             setIsDownloading(false);
         }
@@ -65,7 +66,7 @@ const FileManagementPage = () => {
         input.type = 'file';
         input.accept = '.xlsx, .xls';
 
-        input.onchange = async (e : any) => {
+        input.onchange = async (e: any) => {
             const file = e.target.files[0];
             if (!file) {
                 setIsReplacing(false);
@@ -83,13 +84,13 @@ const FileManagementPage = () => {
                 });
 
                 if (response.status === 200) {
-                    alert('Excel dosyası başarıyla değiştirildi.');
+                    toast.success('Excel dosyası başarıyla değiştirildi.');
                 } else {
                     throw new Error('Dosya yükleme başarısız.');
                 }
             } catch (error) {
                 console.error('Error replacing Excel file:', error);
-                alert('Excel dosyası değiştirilirken bir hata oluştu.');
+                toast.error('Excel dosyası değiştirilirken bir hata oluştu.');
             } finally {
                 setIsReplacing(false);
             }
@@ -109,19 +110,19 @@ const FileManagementPage = () => {
 
     const handleDeleteImages = async () => {
         if (selectedImages.length === 0) {
-            alert('Lütfen silinecek resimleri seçin.');
+            toast.error('Lütfen silinecek resimleri seçin.');
             return;
         }
 
         setIsDeleting(true);
         try {
             await axios.post('/api/images', { images: selectedImages });
-            alert('Seçilen resimler başarıyla silindi.');
+            toast.success('Seçilen resimler başarıyla silindi.');
             fetchImages(); // Refresh the image list
             setSelectedImages([]);
         } catch (error) {
             console.error('Error deleting images:', error);
-            alert('Resimler silinirken bir hata oluştu.');
+            toast.error('Resimler silinirken bir hata oluştu.');
         } finally {
             setIsDeleting(false);
         }
