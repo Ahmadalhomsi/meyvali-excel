@@ -233,17 +233,17 @@ export default function ProductPage() {
 
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
+    { field: 'date', headerName: 'Tarih', width: 100 },
     { field: 'category', headerName: 'Katagori', width: 150 },
     { field: 'name', headerName: 'Ürün Adı', width: 180 },
     { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number' },
     { field: 'price', headerName: 'Fiyat', width: 80, type: 'number' },
     { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
     { field: 'info', headerName: 'Ek Bilgi', width: 250 },
-    { field: 'date', headerName: 'Tarih', width: 100 },
     {
       field: 'actions',
       headerName: 'İşlemler',
-      width: 80,
+      width: 96,
       renderCell: (params) => (
         <Box>
           <IconButton
@@ -402,7 +402,6 @@ export default function ProductPage() {
           variant="contained"
           color="primary"
           onClick={handleAddProduct}
-          sx={{ mt: 2 }}
         >
           Ürün {editingIndex !== null ? 'Güncelle' : 'Ekle'}
         </Button>

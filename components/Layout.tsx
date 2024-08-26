@@ -45,7 +45,7 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
 
     const menuItems = [
         { label: 'Ürünler', path: '/' },
-        { label: 'Ödeme Hesaplama', path: '/payment-calculation' },
+        { label: 'Ödeme', path: '/payment' },
         { label: 'Ayarlar', path: '/settings' },
     ];
 
