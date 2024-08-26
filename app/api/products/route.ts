@@ -5,9 +5,9 @@ import { promises as fs } from 'fs';
 
 export async function GET(request: NextRequest) {
     try {
-        // Get the date from the query parameter
-        const searchParams = await request.json();
-        const date = searchParams.date;
+
+        const searchParams = request.nextUrl.searchParams;
+        const date = searchParams.get('date');
 
         if (!date) {
             return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
