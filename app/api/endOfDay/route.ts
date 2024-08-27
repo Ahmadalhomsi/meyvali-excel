@@ -2,54 +2,80 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { promises as fs } from 'fs';
 
-// export async function GET(request: NextRequest) {
-//     try {
-//         // Get the date from the query parameter
-//         const searchParams = request.nextUrl.searchParams;
-//         const date = searchParams.get('date');
+export async function GET(request: NextRequest) {
+    try {
+        const searchParams = request.nextUrl.searchParams;
+        const date = searchParams.get('date');
 
-//         if (!date) {
-//             return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
-//         }
+        if (!date) {
+            return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
+        }
 
-//         // Define the file path
-//         const fileName = 'temmuz 2024 dene.xlsx';
-//         const publicDir = path.join(process.cwd(), 'public');
-//         const filePath = path.join(publicDir, fileName);
+        const fileName = 'temmuz 2024 dene.xlsx';
+        const publicDir = path.join(process.cwd(), 'public');
+        const filePath = path.join(publicDir, fileName);
 
-//         // Read the Excel file
-//         const workbook = new ExcelJS.Workbook();
-//         const fileBuffer = await fs.readFile(filePath);
-//         await workbook.xlsx.load(fileBuffer);
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
 
-//         // Get the third sheet (index 4)
-//         const worksheet = workbook.worksheets[4];
+        const worksheet1 = workbook.getWorksheet(1);
+        if (!worksheet1) {
+            throw new Error('Worksheet 1 not found');
+        }
 
-//         // Convert the worksheet to JSON
-//         const jsonData: any[] = [];
-//         worksheet.eachRow((row, rowNumber) => {
-//             if (rowNumber > 1) { // Skip the header row
-//                 const rowObject: any = {};
-//                 row.eachCell((cell, colNumber) => {
-//                     const headerCell = worksheet.getRow(1).getCell(colNumber);
-//                     const header = headerCell.value?.toString();
-//                     if (header) {
-//                         rowObject[header] = cell.value;
-//                     }
-//                 });
-//                 jsonData.push(rowObject);
-//             }
-//         });
+        const targetRow = findRowForDate(worksheet1, date, 2);
 
-//         // Filter the data based on the provided date
-//         const filteredPayments = jsonData.filter((product: any) => product['Tarih'] === date);
+        const getCellValue = (cell: ExcelJS.Cell): number => {
+            return Number(cell.value) || 0;
+        };
 
-//         return NextResponse.json({ payments: filteredPayments }, { status: 200 });
-//     } catch (error: any) {
-//         console.error('Error in GET function:', error);
-//         return NextResponse.json({ error: 'An error occurred while processing the request', details: error.message }, { status: 500 });
-//     }
-// }
+        // Manually calculate the value of Q (Q12 in this case)
+        let qValue = 0;
+        for (let col = 'C'.charCodeAt(0); col <= 'P'.charCodeAt(0); col++) {
+            const cellValue = getCellValue(worksheet1.getCell(`${String.fromCharCode(col)}${targetRow}`));
+            qValue += cellValue;
+        }
+
+        // Manually calculate the value of T (T12 in this case)
+        const rValue = getCellValue(worksheet1.getCell(`R${targetRow}`));
+        const sValue = getCellValue(worksheet1.getCell(`S${targetRow}`));
+        const tValue = qValue + rValue + sValue;
+
+        const paketAdet = getCellValue(worksheet1.getCell(`Y${targetRow}`));
+
+        // Calculate the average of the Y column (paketAverage)
+        let ySum = 0;
+        let yCount = 0;
+        worksheet1.eachRow((row, rowNumber) => {
+            const yCell = row.getCell('Y');
+            const yValue = getCellValue(yCell);
+            if (yValue) {
+                ySum += yValue;
+                yCount++;
+            }
+        });
+        const paketAverage = yCount > 0 ? ySum / yCount : 0;
+
+        console.log('Retrieved values:', { tValue, paketAdet, paketAverage: paketAverage }); // Debug log
+
+        const dailyData = {
+            ciro: tValue,
+            paketAdet,
+            paketAverage: paketAverage,
+            date
+        };
+
+        console.log('Sending data:', dailyData); // Debug log
+
+        return NextResponse.json({ dailyData }, { status: 200 });
+    } catch (error) {
+        console.error('Error in GET function:', error);
+        return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
+    }
+}
+
+
+
 
 import ExcelJS from 'exceljs';
 

@@ -34,6 +34,15 @@ interface TotalCash {
     date: string;
 }
 
+interface DailyData {
+    // remaining: number;
+    // creditCard: number;
+    ciro: number;
+    paketAdet: number;
+    paketAverage: number;
+    date: string;
+}
+
 
 export default function End_Of_Day() {
     const [totalCash, setTotalCash] = useState<TotalCash>({
@@ -47,6 +56,15 @@ export default function End_Of_Day() {
     const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
 
     const [isLoading, setIsLoading] = useState(false);
+
+    const [dailyData, setDailyData] = useState<DailyData>({
+        // remaining: 0,
+        // creditCard: 0,
+        ciro: 0,
+        paketAdet: 0,
+        paketAverage: 0,
+        date: dayjs().locale('tr').format('DD.MM.YYYY')
+    });
 
     // useEffect(() => {
     //     fetchTodayTotalCash();
@@ -96,6 +114,35 @@ export default function End_Of_Day() {
     //     return payments.reduce((total, product) => total + parseFloat(product.price + ""), 0);
     // };
 
+    const calculateTotalCash = () => {
+        return totalCash.remaining + totalCash.creditCard + totalCash.TRQcode + totalCash.eBill;
+    };
+
+    const fetchDailyData = async () => {
+        const today = dayjs().format('DD.MM.YYYY');
+        setIsLoading(true);
+        try {
+            const response = await axios.get(`/api/endOfDay?date=${today}`);
+            if (response.status === 200) {
+                setDailyData(response.data.dailyData);
+                // Initialize totalCash with the fetched remaining and creditCard values
+
+                console.log(response.data.dailyData);
+                // setTotalCash(prevState => ({
+                //     ...prevState,
+                //     remaining: response.data.dailyData.remaining,
+                //     creditCard: response.data.dailyData.creditCard,
+                //     date: response.data.dailyData.date
+                // }));
+            }
+        } catch (error) {
+            console.error('Error fetching daily data:', error);
+            toast.error('Günlük veri alınırken bir hata oluştu.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const uploadTotalCash = async () => {
         if (!image) {
             toast('Fotoğraf Eklenmedi', {
@@ -114,6 +161,7 @@ export default function End_Of_Day() {
             });
             if (response.status === 200) {
                 toast.success('Toplam nakit bilgisi başarıyla güncellendi!');
+                fetchDailyData();
             }
         } catch (error) {
             console.error('Error updating total cash:', error);
@@ -280,10 +328,23 @@ export default function End_Of_Day() {
 
             <Divider sx={{ mt: 2 }} />
 
-            <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
-                {/* Toplam Fiyat: {calculateTotalPrice()} TL */}
-                xxxxxx
-            </Typography>
+            <Box sx={{ mt: 2 }}>
+                <Typography variant="h6" fontWeight="bold">
+                    Toplam Ciro: {dailyData.ciro.toFixed(2)} ₺
+                </Typography>
+                <Typography variant="h6" fontWeight="bold">
+                    Toplam Kasa: {calculateTotalCash().toFixed(2)} ₺
+                </Typography>
+                <Typography variant="h6" fontWeight="bold">
+                    Sonuç: {(dailyData.ciro - calculateTotalCash()).toFixed(2)} ₺
+                </Typography>
+                <Typography variant="h6" fontWeight="bold">
+                    Paket Toplamı: {dailyData.paketAdet}
+                </Typography>
+                <Typography variant="h6" fontWeight="bold">
+                    Paket Ortalaması: {dailyData.paketAverage.toFixed(2)}
+                </Typography>
+            </Box>
         </Container >
     );
 }
