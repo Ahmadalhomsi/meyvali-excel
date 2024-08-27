@@ -25,6 +25,7 @@ import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/n
 import { usePathname } from 'next/navigation';
 import Logo from '../public/logo.svg';
 import Image from 'next/image';
+import { styled } from '@mui/material/styles';
 
 
 interface LayoutProps {
@@ -55,6 +56,14 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
             { label: 'Ayarlar', path: '/settings' },
         ] : []),
     ];
+
+    const StyledTabs = styled(Tabs)(({ theme }) => ({
+        position: 'relative',
+        '& .MuiTabs-indicator': {
+            left: 0,
+            right: 0,
+        },
+    }));
 
     const drawer = (
         <Box
@@ -134,13 +143,14 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
                     </SignedIn>
                 </Toolbar>
                 {!isMobile && (
-                    <Tabs
+                    <StyledTabs
                         value={menuItems.findIndex((item) => item.path === currentPage)}
                         centered
                         sx={{
-                            backgroundColor: darkMode ? theme.palette.background.paper : '#852529', // Background color for the tab bar
+                            backgroundColor: darkMode ? theme.palette.background.paper : '#852529',
                             '.MuiTabs-indicator': {
-                                backgroundColor: '#e9cd94', // Indicator color (underlined color for selected tab)
+                                backgroundColor: '#e9cd94',
+                                height: 3, // Adjust the height of the indicator if needed
                             },
                         }}
                     >
@@ -151,19 +161,19 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
                                 component={Link}
                                 href={item.path}
                                 sx={{
-                                    color: darkMode ? '#d6d6d6' : '#ffffff', // Default unselected tab text color
+                                    color: darkMode ? '#d6d6d6' : '#ffffff',
                                     '&.Mui-selected': {
-                                        color: '#e9cd94', // Selected tab text color
+                                        color: '#e9cd94',
                                     },
                                     '&:hover': {
                                         backgroundColor: darkMode
                                             ? 'rgba(255, 255, 255, 0.08)'
-                                            : 'rgba(0, 0, 0, 0.08)', // Background color on hover
+                                            : 'rgba(0, 0, 0, 0.08)',
                                     },
                                 }}
                             />
                         ))}
-                    </Tabs>
+                    </StyledTabs>
                 )}
             </AppBar>
             <Drawer
