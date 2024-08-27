@@ -21,7 +21,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 import Link from 'next/link';
-import { SignInButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
+import { SignInButton, SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 import { usePathname } from 'next/navigation';
 import Logo from '../public/logo.svg';
 import Image from 'next/image';
@@ -38,16 +38,22 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
     const [mobileOpen, setMobileOpen] = useState(false);
     const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
     const theme = useTheme();
+    const { user } = useUser();
+
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
     };
 
+    const isAdmin = user?.publicMetadata?.role === 'admin';
+
     const menuItems = [
         { label: 'Ürünler', path: '/' },
         { label: 'Ödeme', path: '/payment' },
-        { label: 'Gün sonu', path: '/endOfDay' },
-        { label: 'Ayarlar', path: '/settings' },
+        ...(isAdmin ? [
+            { label: 'Gün sonu', path: '/endOfDay' },
+            { label: 'Ayarlar', path: '/settings' },
+        ] : []),
     ];
 
     const drawer = (
