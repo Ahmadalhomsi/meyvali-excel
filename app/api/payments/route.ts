@@ -52,6 +52,7 @@ export async function GET(request: NextRequest) {
 }
 
 import ExcelJS from 'exceljs';
+import { serverBaseUrl } from '@/components/serverConfig';
 
 
 export async function PUT(request: NextRequest) {
@@ -149,7 +150,7 @@ export async function PUT(request: NextRequest) {
             const buffer = Buffer.from(imageBuffer.split(',')[1], 'base64');
             await fs.writeFile(imageFilePath, buffer);
 
-            const imageUrl = `${request.nextUrl.origin}/uploads/${imageFileName}`;
+            const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
             // Update the Excel file with the new image link
             imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
