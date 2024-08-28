@@ -5,12 +5,12 @@ import { NextResponse } from 'next/server';
 
 
 export async function GET() {
-    const filePath = path.join(process.cwd(), 'public', 'temmuz 2024 dene.xlsx');
+    const filePath = path.join(process.cwd(), 'public', 'meyvali-excel.xlsx');
 
     try {
         const fileStream = fs.createReadStream(filePath);
         const headers = new Headers();
-        headers.set('Content-Disposition', 'attachment; filename=temmuz 2024 dene.xlsx');
+        headers.set('Content-Disposition', 'attachment; filename=meyvali-excel.xlsx');
         headers.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
         return new NextResponse(fileStream, { headers });
@@ -39,7 +39,7 @@ export async function POST(req) {
         await writeFile(tempPath, buffer);
 
         // Define the final path
-        const finalPath = path.join(process.cwd(), 'public', 'temmuz 2024 dene.xlsx');
+        const finalPath = path.join(process.cwd(), 'public', 'meyvali-excel.xlsx');
 
         // Read from temp file
         const fileContent = await readFile(tempPath);

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Define the file path
-        const fileName = 'temmuz 2024 dene.xlsx';
+        const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
         const filePath = path.join(publicDir, fileName);
 
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest) {
     try {
         const { date, payments, totalPrice, imageBuffer } = await request.json();
 
-        const fileName = 'temmuz 2024 dene.xlsx';
+        const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
         const uploadsDir = path.join(publicDir, 'uploads');
         const filePath = path.join(publicDir, fileName);

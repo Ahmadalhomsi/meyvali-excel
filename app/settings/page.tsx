@@ -48,7 +48,7 @@ const FileManagementPage = () => {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'temmuz 2024 dene.xlsx');
+            link.setAttribute('download', 'meyvali-excel.xlsx');
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -141,7 +141,7 @@ const FileManagementPage = () => {
                             Excel Dosyası İşlemleri
                         </Typography>
                         <Typography variant="body2" paragraph>
-                            Excel dosyası konumu: public\temmuz 2024 dene.xlsx
+                            Excel dosyası konumu: public\meyvali-excel.xlsx
                         </Typography>
                         <Button
                             variant="contained"
