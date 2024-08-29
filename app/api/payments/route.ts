@@ -132,7 +132,7 @@ export async function PUT(request: NextRequest) {
         if (imageBuffer) {
             // Generate a filename based on the date
             const dateFormatted = date.replace(/\./g, '-'); // Convert '25.08.2024' to '25-08-2024'
-            const imageFileName = `${dateFormatted}.png`;
+            const imageFileName = `${dateFormatted}-Odeme.png`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 
             // Check if an old image exists and delete it

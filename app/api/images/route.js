@@ -32,7 +32,7 @@ export async function GET(req) {
 }
 
 
-export async function POST(req) {
+export async function POST(req) { // For image deleteion
     try {
         const body = await req.json(); // Parse the JSON body
         const { images } = body;
