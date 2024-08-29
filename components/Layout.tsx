@@ -1,9 +1,7 @@
-// components/Layout.tsx
 import React, { useState } from 'react';
 import {
     AppBar,
     Toolbar,
-    Typography,
     Tabs,
     Tab,
     Box,
@@ -27,7 +25,6 @@ import Logo from '../public/logo.svg';
 import Image from 'next/image';
 import { styled } from '@mui/material/styles';
 
-
 interface LayoutProps {
     children: React.ReactNode;
     darkMode: boolean;
@@ -41,7 +38,6 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
     const theme = useTheme();
     const { user } = useUser();
 
-
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
     };
@@ -51,8 +47,8 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
     const menuItems = [
         { label: 'Ürünler', path: '/' },
         { label: 'Ödeme', path: '/payment' },
+        { label: 'Gün sonu', path: '/endOfDay' },
         ...(isAdmin ? [
-            { label: 'Gün sonu', path: '/endOfDay' },
             { label: 'Ayarlar', path: '/settings' },
         ] : []),
     ];
@@ -106,7 +102,7 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <AppBar position="static">
-                <Toolbar>
+                <Toolbar sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     {isMobile && (
                         <IconButton
                             color="inherit"
@@ -118,63 +114,59 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
                             <MenuIcon />
                         </IconButton>
                     )}
-                    <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', mr: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Image
                             src={Logo}
                             alt="App Logo"
-                            width={45} // Set the width of the logo
-                            height={45} // Set the height of the logo
-                            priority={true} // Optional: Load this image first
+                            width={55}
+                            height={55}
+                            priority={true}
                         />
                     </Box>
                     {!isMobile && (
-                        <Typography variant='h5' fontWeight='bold' sx={{ flexGrow: 1, Width: '50%' }}>
-                            Meyvalı Lokantası Kontrol Sistemi
-                        </Typography>
+                        <StyledTabs
+                            value={menuItems.findIndex((item) => item.path === currentPage)}
+                            sx={{
+                                backgroundColor: 'transparent',
+                                '.MuiTabs-indicator': {
+                                    backgroundColor: '#e9cd94',
+                                    height: 3,
+                                },
+                            }}
+                        >
+                            {menuItems.map((item, index) => (
+                                <Tab
+                                    key={item.path}
+                                    label={item.label}
+                                    component={Link}
+                                    href={item.path}
+                                    sx={{
+                                        color: darkMode ? '#d6d6d6' : '#ffffff',
+                                        '&.Mui-selected': {
+                                            color: '#e9cd94',
+                                        },
+                                        '&:hover': {
+                                            backgroundColor: darkMode
+                                                ? 'rgba(255, 255, 255, 0.08)'
+                                                : 'rgba(0, 0, 0, 0.08)',
+                                        },
+                                    }}
+                                />
+                            ))}
+                        </StyledTabs>
                     )}
-                    <IconButton sx={{ paddingRight: 1.5 }} onClick={toggleDarkMode} color="inherit">
-                        {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-                    </IconButton>
-                    <SignedOut>
-                        <SignInButton />
-                    </SignedOut>
-                    <SignedIn>
-                        <UserButton />
-                    </SignedIn>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <IconButton sx={{ paddingRight: 1.5 }} onClick={toggleDarkMode} color="inherit">
+                            {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+                        </IconButton>
+                        <SignedOut>
+                            <SignInButton />
+                        </SignedOut>
+                        <SignedIn>
+                            <UserButton />
+                        </SignedIn>
+                    </Box>
                 </Toolbar>
-                {!isMobile && (
-                    <StyledTabs
-                        value={menuItems.findIndex((item) => item.path === currentPage)}
-                        centered
-                        sx={{
-                            backgroundColor: darkMode ? theme.palette.background.paper : '#852529',
-                            '.MuiTabs-indicator': {
-                                backgroundColor: '#e9cd94',
-                                height: 3, // Adjust the height of the indicator if needed
-                            },
-                        }}
-                    >
-                        {menuItems.map((item, index) => (
-                            <Tab
-                                key={item.path}
-                                label={item.label}
-                                component={Link}
-                                href={item.path}
-                                sx={{
-                                    color: darkMode ? '#d6d6d6' : '#ffffff',
-                                    '&.Mui-selected': {
-                                        color: '#e9cd94',
-                                    },
-                                    '&:hover': {
-                                        backgroundColor: darkMode
-                                            ? 'rgba(255, 255, 255, 0.08)'
-                                            : 'rgba(0, 0, 0, 0.08)',
-                                    },
-                                }}
-                            />
-                        ))}
-                    </StyledTabs>
-                )}
             </AppBar>
             <Drawer
                 variant="temporary"
