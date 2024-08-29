@@ -46,11 +46,11 @@ interface DailyData {
 
 export default function End_Of_Day() {
     const [totalCash, setTotalCash] = useState<TotalCash>({
-        remaining: '',
-        creditCard: '',
-        TRQcode: '',
-        eBill: '',
-        info: '',
+        remaining: '0',
+        creditCard: '0',
+        TRQcode: '0',
+        eBill: '0',
+        info: '0',
         date: dayjs().locale('tr').format('DD.MM.YYYY')
     });
     const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
