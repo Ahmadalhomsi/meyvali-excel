@@ -141,7 +141,7 @@ const FileManagementPage = () => {
                             Excel Dosyası İşlemleri
                         </Typography>
                         <Typography variant="body2" paragraph>
-                            Excel dosyası konumu: public\meyvali-excel.xlsx
+                            Excel dosyası ismi böyle olmalıdır: meyvali-excel.xlsx
                         </Typography>
                         <Button
                             variant="contained"
