@@ -26,10 +26,10 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 
 interface TotalCash {
-    remaining: number;
-    creditCard: number;
-    TRQcode: number;
-    eBill: number;
+    remaining: string;
+    creditCard: string;
+    TRQcode: string;
+    eBill: string;
     info: string;
     date: string;
 }
@@ -46,10 +46,10 @@ interface DailyData {
 
 export default function End_Of_Day() {
     const [totalCash, setTotalCash] = useState<TotalCash>({
-        remaining: 0,
-        creditCard: 0,
-        TRQcode: 0,
-        eBill: 0,
+        remaining: '',
+        creditCard: '',
+        TRQcode: '',
+        eBill: '',
         info: '',
         date: dayjs().locale('tr').format('DD.MM.YYYY')
     });
@@ -99,7 +99,7 @@ export default function End_Of_Day() {
         const { name, value } = e.target;
         setTotalCash(prev => ({
             ...prev,
-            [name]: name === 'info' ? value : parseFloat(value) || 0,
+            [name]: name === 'info' ? value : value,
         }));
     };
 
@@ -115,7 +115,10 @@ export default function End_Of_Day() {
     // };
 
     const calculateTotalCash = () => {
-        return totalCash.remaining + totalCash.creditCard + totalCash.TRQcode + totalCash.eBill;
+        return ['remaining', 'creditCard', 'TRQcode', 'eBill'].reduce((total, field) => {
+            const value = parseFloat(totalCash[field as keyof TotalCash]);
+            return total + (isNaN(value) ? 0 : value);
+        }, 0);
     };
 
     const fetchDailyData = async () => {
