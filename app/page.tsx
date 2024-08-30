@@ -70,7 +70,7 @@ export default function ProductPage() {
     price: 0,
     paymentType: null,
     info: '',
-    date: dayjs().locale('tr').format('DD.MM.YYYY') // Initialize date in Turkish format
+    date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm') // Initialize date in Turkish format
   });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [productIdCounter, setProductIdCounter] = useState<number>(1);
@@ -83,7 +83,7 @@ export default function ProductPage() {
   }, []);
 
   const fetchTodayProducts = async () => {
-    const today = dayjs().format('DD.MM.YYYY');
+    const today = dayjs().format('DD.MM.YYYY HH:mm');
     setIsLoading(true);
     try {
       const response = await axios.get(`/api/products?date=${today}`);
@@ -143,7 +143,7 @@ export default function ProductPage() {
       price: 0,
       paymentType: null,
       info: '',
-      date: dayjs().locale('tr').format('DD.MM.YYYY'), // Reset to today's date
+      date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Reset to today's date
     });
     // setUseToday(true); // Reset checkbox to true after adding the product
   };
@@ -371,9 +371,9 @@ export default function ProductPage() {
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
               <DatePicker
                 label="Tarih"
-                views={['year', 'month', 'day']}
+                views={['year', 'month', 'day',]}
                 defaultValue={dayjs().locale('tr')}
-                value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
+                value={dayjs(currentProduct.date, 'DD.MM.YYYY HH:mm')}
                 onChange={handleDateChange}
                 disabled={useToday}
                 sx={{ width: '40%' }}

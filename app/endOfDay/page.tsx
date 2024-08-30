@@ -51,7 +51,7 @@ export default function End_Of_Day() {
         TRQcode: '0',
         eBill: '0',
         info: '0',
-        date: dayjs().locale('tr').format('DD.MM.YYYY')
+        date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm')
     });
     const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
 
@@ -63,7 +63,7 @@ export default function End_Of_Day() {
         ciro: 0,
         paketAdet: 0,
         paketAverage: 0,
-        date: dayjs().locale('tr').format('DD.MM.YYYY')
+        date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm')
     });
 
     // useEffect(() => {
@@ -122,7 +122,7 @@ export default function End_Of_Day() {
     };
 
     const fetchDailyData = async () => {
-        const today = dayjs().format('DD.MM.YYYY');
+        const today = dayjs().format('DD.MM.YYYY HH:mm');
         setIsLoading(true);
         try {
             const response = await axios.get(`/api/endOfDay?date=${today}`);
@@ -160,7 +160,7 @@ export default function End_Of_Day() {
             const response = await axios.put('/api/endOfDay', {
                 totalCash,
                 imageBuffer: image,
-                date: dayjs().format('DD.MM.YYYY')
+                date: dayjs().format('DD.MM.YYYY HH:mm')
             });
             if (response.status === 200) {
                 toast.success('Toplam nakit bilgisi başarıyla güncellendi!');

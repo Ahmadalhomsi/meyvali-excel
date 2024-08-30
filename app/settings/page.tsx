@@ -220,12 +220,6 @@ const FileManagementPage = () => {
                     </Box>
                 </Grid>
             </Grid>
-
-            <Divider sx={{ my: 4 }}>İşlem Geçmişi</Divider>
-
-            <Typography variant="body2">
-                İşlem geçmişi burada görüntülenebilir.
-            </Typography>
         </Container>
     );
 };

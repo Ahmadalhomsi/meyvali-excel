@@ -89,7 +89,7 @@ export async function PUT(request: NextRequest) {
 
             // Adjust column widths
             worksheet.columns = [
-                { width: 12 }, // Tarih
+                { width: 15 }, // Tarih
                 { width: 8 }, // Fiyat
                 { width: 16 }, // Adisyon No
                 { width: 12 }, // Adisyon Adı

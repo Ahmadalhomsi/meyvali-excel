@@ -116,7 +116,7 @@ export async function PUT(request: NextRequest) {
 
             // Adjust column widths
             worksheet.columns = [
-                { width: 12 }, // Tarih
+                { width: 15 }, // Tarih
                 { width: 10 }, // Kalan
                 { width: 10 }, // Kredi Kartı
                 { width: 10 }, // Kare Kod
