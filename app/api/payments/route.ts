@@ -66,6 +66,8 @@ export async function PUT(request: NextRequest) {
 
         console.log(payments);
 
+        const dateOnly = date.split(' ')[0]; // Output: "DD.MM.YYYY"
+
         // Ensure the uploads directory exists
         try {
             await fs.access(uploadsDir);
@@ -130,8 +132,9 @@ export async function PUT(request: NextRequest) {
         }
 
         if (imageBuffer) {
+
             // Generate a filename based on the date
-            const dateFormatted = date.replace(/\./g, '-'); // Convert '25.08.2024' to '25-08-2024'
+            const dateFormatted = dateOnly.replace(/\./g, '-'); // Convert '25.08.2024' to '25-08-2024'
             const imageFileName = `${dateFormatted}-Odeme.png`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 

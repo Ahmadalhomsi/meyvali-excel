@@ -50,7 +50,7 @@ export default function End_Of_Day() {
         creditCard: '0',
         TRQcode: '0',
         eBill: '0',
-        info: '0',
+        info: '',
         date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm')
     });
     const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
@@ -65,33 +65,6 @@ export default function End_Of_Day() {
         paketAverage: 0,
         date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm')
     });
-
-    // useEffect(() => {
-    //     fetchTodayTotalCash();
-    // }, []);
-
-    // const fetchTodayTotalCash = async () => {
-    //     const today = dayjs().format('DD.MM.YYYY');
-    //     setIsLoading(true);
-    //     try {
-    //         const response = await axios.get(`/api/endOfDay?date=${today}`);
-    //         if (response.status === 200) {
-    //             setTotalCash({
-    //                 remaining: response.data.remaining || 0,
-    //                 creditCard: response.data.creditCard || 0,
-    //                 TRQcode: response.data.TRQcode || 0,
-    //                 eBill: response.data.eBill || 0,
-    //                 info: response.data.info || '',
-    //                 date: response.data.date || today,
-    //             });
-    //         }
-    //     } catch (error) {
-    //         console.error('Error fetching today\'s total cash:', error);
-    //         toast.error('Günün toplam nakit bilgisi alınırken bir hata oluştu.');
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
 
     const handleInputChange = (
         e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -129,14 +102,7 @@ export default function End_Of_Day() {
             if (response.status === 200) {
                 setDailyData(response.data.dailyData);
                 // Initialize totalCash with the fetched remaining and creditCard values
-
                 console.log(response.data.dailyData);
-                // setTotalCash(prevState => ({
-                //     ...prevState,
-                //     remaining: response.data.dailyData.remaining,
-                //     creditCard: response.data.dailyData.creditCard,
-                //     date: response.data.dailyData.date
-                // }));
             }
         } catch (error) {
             console.error('Error fetching daily data:', error);
@@ -156,9 +122,18 @@ export default function End_Of_Day() {
         setIsLoading(true);
         console.log(totalCash);
 
+        const processedTotalCash = {
+            remaining: Number(totalCash.remaining) || 0,
+            creditCard: Number(totalCash.creditCard) || 0,
+            TRQcode: Number(totalCash.TRQcode) || 0,
+            eBill: Number(totalCash.eBill) || 0,
+            info: totalCash.info, // info string olarak kalacak
+            date: totalCash.date
+        };
+
         try {
             const response = await axios.put('/api/endOfDay', {
-                totalCash,
+                totalCash: processedTotalCash,
                 imageBuffer: image,
                 date: dayjs().format('DD.MM.YYYY HH:mm')
             });

@@ -93,6 +93,8 @@ export async function PUT(request: NextRequest) {
         console.log(date);
         console.log(totalCash);
 
+        const dateOnly = date.split(' ')[0]; // Output: "DD.MM.YYYY"
+
         // Ensure the uploads directory exists
         try {
             await fs.access(uploadsDir);
@@ -140,6 +142,7 @@ export async function PUT(request: NextRequest) {
         // Add the new totalCash row
         const newRow = [
             date,
+
             totalCash.remaining,
             totalCash.creditCard,
             totalCash.TRQcode,
@@ -158,10 +161,10 @@ export async function PUT(request: NextRequest) {
         if (imageCell.value && typeof imageCell.value === 'object' && 'hyperlink' in imageCell.value) {
             oldImageUrl = (imageCell.value as ExcelJS.CellHyperlinkValue).hyperlink;
         }
-        
+
         if (imageBuffer) {
             // Generate a filename based on the date
-            const dateFormatted = date.replace(/\./g, '-');
+            const dateFormatted = dateOnly.replace(/\./g, '-');
             const imageFileName = `${dateFormatted}-Gun_Sonu.png`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 
