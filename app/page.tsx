@@ -75,12 +75,26 @@ export default function ProductPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [productIdCounter, setProductIdCounter] = useState<number>(1);
   const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
-
   const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]);
+
 
   useEffect(() => {
     fetchTodayProducts();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get('/api/categories');
+      if (response.status === 200) {
+        setCategories(response.data.categories);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast.error('Kategoriler alınırken bir hata oluştu.');
+    }
+  };
 
   const fetchTodayProducts = async () => {
     const today = dayjs().format('DD.MM.YYYY HH:mm');

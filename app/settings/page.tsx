@@ -17,6 +17,8 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import CategoriesManagement from './CategoriesManagement';
+
 
 const FileManagementPage = () => {
     const [isDownloading, setIsDownloading] = useState(false);
@@ -218,6 +220,10 @@ const FileManagementPage = () => {
                             </Box>
                         )}
                     </Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                    <CategoriesManagement />
                 </Grid>
             </Grid>
         </Container>
