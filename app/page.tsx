@@ -37,27 +37,28 @@ interface Product {
   date: string; // Store date as a string in YYYY-MM-DD format
 }
 
-const categories = [
-  'SÜT',
-  'ET-DANA',
-  'ET-KUZU',
-  'BEYAZ-ET',
-  'EKMEK',
-  'MARKET PAZAR RAMİ',
-  'PAÇA',
-  'İŞKEMBE',
-  'AMBALAJ MALZEMESİ',
-  'SU-ŞİŞE',
-  'MEŞRUBAT',
-  'TÜP',
-  'MAZOT',
-  'EKSTRA ELEMAN',
-];
+// const categories = [
+//   'SÜT',
+//   'ET-DANA',
+//   'ET-KUZU',
+//   'BEYAZ-ET',
+//   'EKMEK',
+//   'MARKET PAZAR RAMİ',
+//   'PAÇA',
+//   'İŞKEMBE',
+//   'AMBALAJ MALZEMESİ',
+//   'SU-ŞİŞE',
+//   'MEŞRUBAT',
+//   'TÜP',
+//   'MAZOT',
+//   'EKSTRA ELEMAN',
+// ];
 
 const paymentTypes = [
   'Nakit',
   'Kredi Kartı',
   'Havale',
+  'Kasadan'
 ];
 
 export default function ProductPage() {
