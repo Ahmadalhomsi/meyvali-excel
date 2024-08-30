@@ -133,7 +133,8 @@ const FileManagementPage = () => {
     return (
         <Container>
             <Typography variant="h4" gutterBottom>
-                Dosya Yönetimi
+                {/* Dosya Yönetimi */}
+                Ayarlar
             </Typography>
 
             <Grid container spacing={2}>
@@ -169,6 +170,10 @@ const FileManagementPage = () => {
                             </Box>
                         )}
                     </Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                    <CategoriesManagement />
                 </Grid>
 
                 <Grid item xs={12}>
@@ -222,9 +227,7 @@ const FileManagementPage = () => {
                     </Box>
                 </Grid>
 
-                <Grid item xs={12}>
-                    <CategoriesManagement />
-                </Grid>
+
             </Grid>
         </Container>
     );

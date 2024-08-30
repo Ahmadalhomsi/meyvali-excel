@@ -154,9 +154,13 @@ export default function Payment_Calculation() {
   };
 
   const calculateTotalPrice = () => {
-    return payments.reduce((total, product) => total + parseFloat(product.price + ""), 0);
+    return payments.reduce((total, product) => total + parseFloat(product.price + ""), 0).toFixed(2);
   };
 
+  const formatPrice = (price : any) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  };
+  
 
   const uploadProducts = async () => {
 
@@ -334,7 +338,7 @@ export default function Payment_Calculation() {
                 label="Tarih"
                 views={['year', 'month', 'day']}
                 defaultValue={dayjs().locale('tr')}
-                value={dayjs(currentPayment.date, 'DD.MM.YYYY HH:mm')} 
+                value={dayjs(currentPayment.date, 'DD.MM.YYYY HH:mm')}
                 onChange={handleDateChange}
                 disabled={useToday}
                 sx={{ width: '40%' }}
@@ -399,7 +403,7 @@ export default function Payment_Calculation() {
 
 
       <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
-        Toplam Fiyat: {calculateTotalPrice()} TL
+        Toplam Fiyat: {formatPrice(calculateTotalPrice())} TL
       </Typography>
 
       <Button

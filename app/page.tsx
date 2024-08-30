@@ -191,7 +191,11 @@ export default function ProductPage() {
   };
 
   const calculateTotalPrice = () => {
-    return products.reduce((total, product) => total + parseFloat(product.price + ""), 0);
+    return products.reduce((total, product) => total + parseFloat(product.price + ""), 0).toFixed(2);
+  };
+
+  const formatPrice = (price : any) => {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
 
@@ -453,7 +457,7 @@ export default function ProductPage() {
 
 
       <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
-        Toplam Fiyat: {calculateTotalPrice()} TL
+        Toplam Fiyat: {formatPrice(calculateTotalPrice())} TL
       </Typography>
 
       <Button

@@ -94,6 +94,11 @@ export default function End_Of_Day() {
         }, 0);
     };
 
+    const formatPrice = (price: any) => {
+        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    };
+
+
     const fetchDailyData = async () => {
         const today = dayjs().format('DD.MM.YYYY HH:mm');
         setIsLoading(true);
@@ -308,19 +313,19 @@ export default function End_Of_Day() {
 
             <Box sx={{ mt: 2 }}>
                 <Typography variant="h6" fontWeight="bold">
-                    Toplam Ciro: {dailyData.ciro.toFixed(2)} ₺
+                    Toplam Ciro: {formatPrice(dailyData.ciro.toFixed(2))} ₺
                 </Typography>
                 <Typography variant="h6" fontWeight="bold">
-                    Toplam Kasa: {calculateTotalCash().toFixed(2)} ₺
+                    Toplam Kasa: {formatPrice(calculateTotalCash().toFixed(2))} ₺
                 </Typography>
                 <Typography variant="h6" fontWeight="bold">
-                    Sonuç: {(dailyData.ciro - calculateTotalCash()).toFixed(2)} ₺
+                    Sonuç: {formatPrice((dailyData.ciro - calculateTotalCash()).toFixed(2))} ₺
                 </Typography>
                 <Typography variant="h6" fontWeight="bold">
-                    Paket Toplamı: {dailyData.paketAdet}
+                    Paket Toplamı: {dailyData.paketAdet.toLocaleString()}
                 </Typography>
                 <Typography variant="h6" fontWeight="bold">
-                    Paket Ortalaması: {dailyData.paketAverage.toFixed(2)}
+                    Paket Ortalaması: {formatPrice(dailyData.paketAverage.toFixed(2))}
                 </Typography>
             </Box>
         </Container >
