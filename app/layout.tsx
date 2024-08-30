@@ -29,7 +29,7 @@ export default function RootLayout({
           <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
             <CssBaseline />
             <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-              <Toaster />
+            <Toaster position="bottom-right" />
               {/* Protect all pages */}
               <SignedIn>
                 {children}
