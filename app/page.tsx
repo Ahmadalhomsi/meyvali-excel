@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent, useEffect } from 'react';
+import { useState, ChangeEvent, useEffect, useCallback } from 'react';
 import {
   Container,
   TextField,
@@ -15,7 +15,7 @@ import {
   CircularProgress,
   Grid,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, AddAPhoto } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -24,10 +24,12 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { serverBaseUrl } from '@/components/serverConfig';
 
 // Define the product type
 interface Product {
-  id: number;
+  id: string;
   category: string | null;
   name: string;
   quantity: number;
@@ -35,24 +37,8 @@ interface Product {
   paymentType: string | null;
   info: string;
   date: string; // Store date as a string in YYYY-MM-DD format
+  image: string | null;
 }
-
-// const categories = [
-//   'SÜT',
-//   'ET-DANA',
-//   'ET-KUZU',
-//   'BEYAZ-ET',
-//   'EKMEK',
-//   'MARKET PAZAR RAMİ',
-//   'PAÇA',
-//   'İŞKEMBE',
-//   'AMBALAJ MALZEMESİ',
-//   'SU-ŞİŞE',
-//   'MEŞRUBAT',
-//   'TÜP',
-//   'MAZOT',
-//   'EKSTRA ELEMAN',
-// ];
 
 const paymentTypes = [
   'Nakit',
@@ -64,17 +50,18 @@ const paymentTypes = [
 export default function ProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [currentProduct, setCurrentProduct] = useState<Product>({
-    id: 0,
+    id: uuidv4(),
     category: null,
     name: '',
     quantity: 0,
     price: 0,
     paymentType: null,
     info: '',
-    date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm') // Initialize date in Turkish format
+    date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Initialize date in Turkish format
+    image: null,
   });
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [productIdCounter, setProductIdCounter] = useState<number>(1);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
@@ -101,23 +88,22 @@ export default function ProductPage() {
     const today = dayjs().format('DD.MM.YYYY HH:mm');
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/products?date=${today}`);
+      const response = await axios.get(`/api/products?date=${today.split(' ')[0]}`);
       if (response.status === 200) {
-        const productsWithIds = response.data.products.map((product: any, index: number) => ({
-          id: index + 1,  // or however the ID should be generated
+        console.log('Today\'s products:', response.data.products);
+
+        const productsWithIds = response.data.products.map((product: any) => ({
+          id: product.ID,
           category: product['Katagori'],
           name: product['Ürün Adı'],
           quantity: parseFloat(product['Adet/Kg']),
           price: parseFloat(product['Fiyat']),
           paymentType: product['Ödeme Türü'],
           info: product['Ek Bilgi'],
-          date: product['Tarih']
+          date: product['Tarih'],
+          image: product['Fotoğraf'].hyperlink,
         }));
         setProducts(productsWithIds);
-
-        // Update the productIdCounter to avoid ID conflicts
-        const maxId = Math.max(...productsWithIds.map((product: { id: any; }) => product.id), 0);
-        setProductIdCounter(maxId + 1);
       }
     } catch (error) {
       console.error('Error fetching today\'s products:', error);
@@ -127,126 +113,154 @@ export default function ProductPage() {
     }
   };
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setCurrentProduct({
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const updatedProduct = {
       ...currentProduct,
       [e.target.name]: e.target.value,
-    });
+    };
+    setCurrentProduct(updatedProduct);
   };
 
-  const handleAddProduct = () => {
-    if (editingIndex !== null) { // Updating
-      const updatedProducts = products.map((product, index) =>
-        index === editingIndex ? { ...currentProduct, id: products[editingIndex].id } : product
-      );
-      setProducts(updatedProducts);
-      setEditingIndex(null);
-      toast.success('Ürün başarıyla güncellendi!');
-    } else { // Adding
-      setProducts([...products, { ...currentProduct, id: productIdCounter }]);
-      setProductIdCounter(productIdCounter + 1);
-      toast.success('Ürün başarıyla eklendi!');
+
+  const updateProduct = async (product: Product) => {
+    console.log('Updating product:', product);
+
+    try {
+      await axios.put(`/api/products/`, product);
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error; // Rethrow the error to handle it in the calling function
     }
-
-    setCurrentProduct({
-      id: 0,
-      category: null,
-      name: '',
-      quantity: 0,
-      price: 0,
-      paymentType: null,
-      info: '',
-      date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Reset to today's date
-    });
-    // setUseToday(true); // Reset checkbox to true after adding the product
   };
 
-  const handleEditProduct = (id: number) => {
-    const index = products.findIndex(product => product.id === id);
-    setCurrentProduct(products[index]);
-    setEditingIndex(index);
-    setUseToday(products[index].date === dayjs().locale('tr').format('DD.MM.YYYY')); // Determine if the date is today
+  const handleAddProduct = async () => {
+    try {
+      console.log(editingId);
+
+      let uniqueId
+
+      if (editingId !== null) {
+        setIsLoading(true);
+        // Format date and construct image URL outside the loop
+        uniqueId = editingId;
+        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
+
+        // Update the product list with the new values
+        const updatedProducts = products.map((product) =>
+          product.id === editingId
+            ? { ...currentProduct }
+            : product
+        );
+
+        // Wait for the update to complete before proceeding
+        await updateProduct(currentProduct);
+
+        // Only update state if the API call is successful
+        setProducts(updatedProducts);
+        setEditingId(null);
+        toast.success('Ürün başarıyla güncellendi!');
+        setIsLoading(false);
+
+      } else {
+        uniqueId = uuidv4();
+        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
+
+
+        const newProduct = { ...currentProduct, id: uniqueId };
+
+        // Wait for the add operation to complete
+        await updateProduct(newProduct);
+
+        newProduct.image = imageUrl;
+        // Only update state if the API call is successful
+        setProducts([...products, newProduct]);
+        toast.success('Ürün başarıyla eklendi!');
+      }
+
+      // Reset current product after successful operation
+      setCurrentProduct({
+        id: uniqueId,
+        category: null,
+        name: '',
+        quantity: 0,
+        price: 0,
+        paymentType: null,
+        info: '',
+        date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'),
+        image: null,
+      });
+    } catch (error) {
+      console.error('Error handling product:', error);
+      // Error toast is already shown in `updateProduct`, so no need to show another one here
+    }
   };
 
-  const handleDeleteProduct = (id: number) => {
-    const updatedProducts = products.filter((product) => product.id !== id);
-    setProducts(updatedProducts);
-    toast.success('Ürün başarıyla silindi!');
+  const handleEditProduct = (id: string) => {
+    const productToEdit = products.find(product => product.id === id);
+    if (productToEdit) {
+      setCurrentProduct(productToEdit);
+      setEditingId(id);
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await axios.delete(`/api/products/${id}`);
+      const updatedProducts = products.filter((product) => product.id !== id);
+      setProducts(updatedProducts);
+      toast.success('Ürün başarıyla silindi!');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Ürün silinirken bir hata oluştu.');
+    }
   };
 
   const handleCheckboxChange = () => {
     setUseToday(!useToday);
     if (!useToday) {
-      setCurrentProduct({ ...currentProduct, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date
+      setCurrentProduct({ ...currentProduct, date: dayjs().locale('tr').format('DD.MM.YYYY') });
     }
   };
 
   const handleDateChange = (newValue: dayjs.Dayjs | null) => {
-    setCurrentProduct({
+    const newDate = newValue ? newValue.format('DD.MM.YYYY') : '';
+    const updatedProduct = {
       ...currentProduct,
-      date: newValue ? newValue.format('DD.MM.YYYY') : ''
-    });
+      date: newDate,
+    };
+    setCurrentProduct(updatedProduct);
   };
 
   const calculateTotalPrice = () => {
     return products.reduce((total, product) => total + parseFloat(product.price + ""), 0).toFixed(2);
   };
 
-  const formatPrice = (price : any) => {
+  const formatPrice = (price: any) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
 
-  const uploadProducts = async () => {
 
-    if (!image) {
-      toast('Fotoğraf Eklenmedi', {
-        icon: '❗',
-      });
-    }
-
-    const today = dayjs().format('DD.MM.YYYY');
-    setIsLoading(true);
-    try {
-      const response = await axios.put('/api/products', {
-        date: today,
-        products: products.map(p => ({
-          'Tarih': p.date,
-          'Katagori': p.category,
-          'Ürün Adı': p.name,
-          'Adet/Kg': parseInt(p.quantity + ""),
-          'Fiyat': parseInt(p.price + ""),
-          'Ödeme Türü': p.paymentType,
-          'Ek Bilgi': p.info,
-        })),
-        totalPrice: calculateTotalPrice(),
-        imageBuffer: image
-      });
-      if (response.status === 200) {
-        toast.success('Ürünler başarıyla güncellendi!');
-      }
-    } catch (error) {
-      console.error('Error updating products:', error);
-      toast.error('Ürünler güncellenirken bir hata oluştu.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Image upload
-  const [image, setImage] = useState<string | null>(null);
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImage(e.target?.result as string);
+      reader.onload = async (e) => {
+        const imageDataUrl = e.target?.result as string;
+        const updatedProduct = { ...currentProduct, image: imageDataUrl };
+        setCurrentProduct(updatedProduct);
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleImageDelete = () => {
+    const updatedProduct = { ...currentProduct, image: null };
+    setCurrentProduct(updatedProduct);
   };
 
 
@@ -258,11 +272,35 @@ export default function ProductPage() {
     { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number' },
     { field: 'price', headerName: 'Fiyat', width: 80, type: 'number' },
     { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
-    { field: 'info', headerName: 'Ek Bilgi', width: 250 },
+    { field: 'info', headerName: 'Ek Bilgi', width: 220 },
+    {
+      field: 'image',
+      headerName: 'Fotoğraf',
+      width: 100,
+      renderCell: (params) =>
+        params.value ? (
+          <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: 0 }}>
+            <img
+              src={params.value}
+              alt="Product"
+              style={{
+                width: 'auto',  // Let the width adjust automatically
+                height: '140%', // Make the image take the full height of the cell
+                objectFit: 'contain', // Ensure the entire image is visible without distortion
+                cursor: 'pointer',
+                margin: 0, // Remove any margin around the image
+              }}
+            />
+          </a>
+        ) : (
+          <Typography>No Image</Typography>
+        ),
+    },
+
     {
       field: 'actions',
       headerName: 'İşlemler',
-      width: 96,
+      width: 120,
       renderCell: (params) => (
         <Box>
           <IconButton
@@ -352,28 +390,6 @@ export default function ProductPage() {
             />
           </Grid>
 
-          <Box sx={{ display: "flex", alignItems: "center", marginTop: 2, marginLeft: 2 }}>
-            <Button
-              variant="contained"
-              component="label"
-              sx={{ marginRight: 2 }}
-            >
-              Fotoğraf Yükle
-              <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
-            </Button>
-
-            {image && (
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <img
-                  src={image}
-                  alt="Uploaded"
-                  style={{ maxWidth: 60, maxHeight: 60, marginRight: 10, borderRadius: 4 }}
-                />
-              </Box>
-            )}
-          </Box>
-
-
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               label="Ek Bilgi"
@@ -386,7 +402,7 @@ export default function ProductPage() {
             <br />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
               <DatePicker
                 label="Tarih"
@@ -395,7 +411,7 @@ export default function ProductPage() {
                 value={dayjs(currentProduct.date, 'DD.MM.YYYY HH:mm')}
                 onChange={handleDateChange}
                 disabled={useToday}
-                sx={{ width: '40%' }}
+                sx={{ width: '55%' }}
               />
             </LocalizationProvider>
 
@@ -409,66 +425,79 @@ export default function ProductPage() {
                 />
               }
               label="Bugün"
-              sx={{ marginTop: '10px', marginLeft: '5px' }}
+              sx={{ marginTop: '8px', marginLeft: '4px' }}
             />
           </Grid>
 
+          <Grid item xs={12} sm={6} md={2.9}>
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="raised-button-file"
+              type="file"
+              onChange={handleImageUpload}
+            />
+            <label htmlFor="raised-button-file">
+              <Button variant="contained" component="span" sx={{ marginTop: 1 }} startIcon={<AddAPhoto />}>
+                {currentProduct.image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
+              </Button>
+            </label>
+            {currentProduct.image && (
+              <IconButton onClick={handleImageDelete} color="secondary">
+                <Delete />
+              </IconButton>
+            )}
+          </Grid>
+
+          {currentProduct.image && (
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <img
+                src={currentProduct.image}
+                alt="Uploaded"
+                style={{ maxWidth: 60, maxHeight: 60, marginRight: 10, borderRadius: 4, marginTop: 10 }}
+              />
+            </Box>
+          )}
+
         </Grid>
         <br />
-
 
         <Button
           variant="contained"
           color="primary"
           onClick={handleAddProduct}
         >
-          Ürün {editingIndex !== null ? 'Güncelle' : 'Ekle'}
+          Ürün {editingId !== null ? 'Güncelle' : 'Ekle'}
         </Button>
       </form>
-
-      {/* <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
-        Bugünkü eklenen ürünler:
-      </Typography> */}
-
-
       <Divider sx={{ my: 1 }}>Bugünkü eklenen ürünler:</Divider>
 
-
-      {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Box sx={{ height: 400, width: '100%' }}>
-          <DataGrid
-            rows={products}
-            columns={columns}
-            hideFooter
-            sx={{
-              '& .MuiDataGrid-cell': {
-                whiteSpace: 'normal',
-                lineHeight: 'normal',
-                padding: '8px',
-              },
-            }}
-          />
-        </Box>
-      )}
-
+      {
+        isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Box sx={{ height: 400, width: '100%' }}>
+            <DataGrid
+              rows={products}
+              columns={columns}
+              hideFooter
+              sx={{
+                '& .MuiDataGrid-cell': {
+                  whiteSpace: 'normal',
+                  lineHeight: 'normal',
+                  padding: '8px',
+                },
+              }}
+            />
+          </Box>
+        )
+      }
 
       <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
         Toplam Fiyat: {formatPrice(calculateTotalPrice())} TL
       </Typography>
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={uploadProducts}
-        disabled={isLoading}
-        sx={{ mt: 2 }}
-      >
-        {isLoading ? 'Kaydediliyor...' : 'Kaydet'}
-      </Button>
     </Container >
   );
 }

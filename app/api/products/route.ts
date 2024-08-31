@@ -2,12 +2,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { promises as fs } from 'fs';
+import { v4 as uuidv4 } from 'uuid'; // To generate unique identifiers
+import ExcelJS from 'exceljs';
+import { serverBaseUrl } from '@/components/serverConfig';
+
 
 export async function GET(request: NextRequest) {
     try {
-
         const searchParams = request.nextUrl.searchParams;
         const date = searchParams.get('date');
+        console.log('Received GET request with date:', date);
 
         if (!date) {
             return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
@@ -36,6 +40,11 @@ export async function GET(request: NextRequest) {
                     const header = headerCell.value?.toString();
                     if (header) {
                         rowObject[header] = cell.value;
+
+                        // Check if this is the image column and extract the hyperlink
+                        if (header === 'Image' && cell.hyperlink) {
+                            rowObject['Image'] = cell.hyperlink;
+                        }
                     }
                 });
                 jsonData.push(rowObject);
@@ -43,29 +52,30 @@ export async function GET(request: NextRequest) {
         });
 
         // Filter the data based on the provided date
-        const filteredProducts = jsonData.filter((product: any) => product['Tarih'] === date);
+        const filteredProducts = jsonData.filter((product: any) => product['Tarih'].split(' ')[0] === date);
 
         return NextResponse.json({ products: filteredProducts }, { status: 200 });
     } catch (error: any) {
-        console.error('Error in GET function:', error);
+        console.log('Error in GET function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request', details: error.message }, { status: 500 });
     }
 }
 
-import ExcelJS from 'exceljs';
-import { serverBaseUrl } from '@/components/serverConfig';
+
+
 
 
 export async function PUT(request: NextRequest) {
     try {
-        const { date, products, totalPrice, imageBuffer } = await request.json();
+        const data = await request.json();
+        const { id, category, name, paymentType, info, date, image } = data;
+        const quantity = parseFloat(data.quantity);
+        const price = parseFloat(data.price);
 
         const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
         const uploadsDir = path.join(publicDir, 'uploads');
         const filePath = path.join(publicDir, fileName);
-
-        console.log(products);
 
         const dateOnly = date.split(' ')[0]; // Output: "DD.MM.YYYY"
 
@@ -87,7 +97,7 @@ export async function PUT(request: NextRequest) {
 
         // If the worksheet is empty, add the template headers and set column widths
         if (worksheet.actualRowCount === 0) {
-            const headers = ['Tarih', 'Katagori', 'Ürün Adı', 'Adet/Kg', 'Fiyat', 'Ödeme Türü', 'Ek Bilgi', 'Fotoğraf'];
+            const headers = ['Tarih', 'Katagori', 'Ürün Adı', 'Adet/Kg', 'Fiyat', 'Ödeme Türü', 'Ek Bilgi', 'Fotoğraf', 'ID'];
             worksheet.addRow(headers);
 
             // Adjust column widths
@@ -100,71 +110,57 @@ export async function PUT(request: NextRequest) {
                 { width: 15 }, // Ödeme Türü
                 { width: 25 }, // Ek Bilgi
                 { width: 15 }, // Fotoğraf
+                { width: 40 }, // ID (increased width for UUID)
             ];
         }
 
-        // Find and remove all rows with the given date in the first column
-        let rowToDelete = 1;
-        while (rowToDelete <= worksheet.rowCount) {
-            const cell = worksheet.getCell(`A${rowToDelete}`);
-            if (cell.value === date) {
-                worksheet.spliceRows(rowToDelete, 1);
-            } else {
-                rowToDelete++;
+        // Find the row with the given ID
+        let rowToUpdate: ExcelJS.Row | undefined;
+        worksheet.eachRow((row, rowNumber) => {
+            if (row.getCell(9).value === id) {
+                rowToUpdate = row;
             }
-        }
-
-        // Determine the index to start adding new rows
-        const startRow = worksheet.actualRowCount + 1;
-
-        // Add the new products starting from the correct row
-        products.forEach((product: any, index: number) => {
-            const productRow = Array.isArray(product) ? product : Object.values(product);
-            worksheet.insertRow(startRow + index, productRow);
         });
 
-        const firstProductRowIndex = startRow;
-
-        // Handle image replacement logic
-        const imageCell = worksheet.getCell(`H${firstProductRowIndex}`); // Changed to column H for Fotoğraf
-        let oldImageUrl: string | undefined;
-
-        if (imageCell.value && typeof imageCell.value === 'object' && 'hyperlink' in imageCell.value) {
-            oldImageUrl = (imageCell.value as ExcelJS.CellHyperlinkValue).hyperlink;
+        if (rowToUpdate) {
+            // Update existing row
+            rowToUpdate.getCell(1).value = date;
+            rowToUpdate.getCell(2).value = category;
+            rowToUpdate.getCell(3).value = name;
+            rowToUpdate.getCell(4).value = quantity;
+            rowToUpdate.getCell(5).value = price;
+            rowToUpdate.getCell(6).value = paymentType;
+            rowToUpdate.getCell(7).value = info;
+        } else {
+            // Insert new row if ID not found
+            const newRow = [date, category, name, quantity, price, paymentType, info, , id, ''];
+            rowToUpdate = worksheet.addRow(newRow);
         }
 
-        if (imageBuffer) {
-            // Generate a filename based on the date
-            const dateFormatted = dateOnly.replace(/\./g, '-'); // Convert '25.08.2024' to '25-08-2024'
-            const imageFileName = `${dateFormatted}-Urunler.png`;
+        // Handle image update
+        if (image && typeof image === 'string' && image.startsWith('data:image/png;base64,')) {
+            const uniqueId = id;
+            const dateFormatted = dateOnly.replace(/\./g, '-');
+            const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 
-            // Check if an old image exists and delete it
-            try {
-                await fs.access(imageFilePath);
-                await fs.unlink(imageFilePath);
-                console.log(`Deleted existing image for date: ${date}`);
-            } catch (err: any) {
-                if (err.code !== 'ENOENT') {
-                    console.warn(`Error checking/deleting existing image: ${err.message}`);
-                }
-            }
-
             // Save the new image
-            const buffer = Buffer.from(imageBuffer.split(',')[1], 'base64');
+            const buffer = Buffer.from(image.split(',')[1], 'base64');
             await fs.writeFile(imageFilePath, buffer);
 
             const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
             // Update the Excel file with the new image link
+            const imageCell = rowToUpdate.getCell(8);
             imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
             imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
 
             console.log(`Updated image for date: ${date}`);
+        } else {
+            console.error('Image is not a valid base64-encoded string.');
         }
 
-        // ------ ------- Now move to the first worksheet
-
+        // Update the first worksheet based on category
         const worksheet1 = workbook.getWorksheet(1);
         if (!worksheet1) {
             throw new Error('Worksheet 1 not found');
@@ -188,63 +184,45 @@ export async function PUT(request: NextRequest) {
             'EKSTRA ELEMAN': 'P',
         };
 
+        const columnLetter = categoryColumnMap[category];
 
-
-        // Loop through the products and update the first worksheet
-        products.forEach((product: any) => {
-            const { 'Katagori': category, 'Fiyat': price, 'Ödeme Türü': paymentType } = product;
-
-            const columnLetter = categoryColumnMap[category];
-
-            if (columnLetter) {
-                let targetRow: number;
-                if (paymentType === 'Nakit') {
-                    targetRow = findRowForDate(worksheet1, date, 2); // Start from row 2 for 'Nakit'
-                    const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-                    const currentValue = targetCell.value || 0;
-                    targetCell.value = (currentValue as number) + price;
-                } else {
-                    targetRow = findRowForDate(worksheet1, date, 34); // Start from row 34 for other payment types
-                    const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-                    targetCell.value = price;
-                }
+        if (columnLetter) {
+            let targetRow: number;
+            if (paymentType === 'Nakit') {
+                targetRow = findRowForDate(worksheet1, date, 2); // Start from row 2 for 'Nakit'
+                const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
+                const currentValue = targetCell.value || 0;
+                targetCell.value = (currentValue as number) + price;
+            } else {
+                targetRow = findRowForDate(worksheet1, date, 34); // Start from row 34 for other payment types
+                const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
+                targetCell.value = price;
             }
-        });
+        }
 
         // Save the updated workbook back to the file
         await workbook.xlsx.writeFile(filePath);
 
-        return NextResponse.json({ message: 'Products and image link successfully updated' }, { status: 200 });
+        return NextResponse.json({ message: 'Product and image link successfully updated', id: id || uuidv4() }, { status: 200 });
     } catch (error) {
         console.error('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }
 
-
 // Function to find the correct row for the given date, starting from a specific row
-function findRowForDate(worksheet: any, date: string, startRow: number): number {
+function findRowForDate(worksheet: ExcelJS.Worksheet, date: string, startRow: number): number {
     let rowIndex = startRow;
     while (rowIndex <= worksheet.rowCount) {
         const cellValue = worksheet.getCell(`A${rowIndex}`).value;
         if (cellValue === null || cellValue === undefined || cellValue === '') {
-            worksheet.getCell(`A${rowIndex}`).value = date; // Add the date to the first empty row
+            worksheet.getCell(`A${rowIndex}`).value = date;
             return rowIndex;
-        }
-        if (cellValue === date) {
-            return rowIndex; // Return the row if the date matches
-        }
-        if (cellValue > date) {
-            // Insert a new row and add the date
-            worksheet.insertRow(rowIndex, [date]);
+        } else if (cellValue === date) {
             return rowIndex;
         }
         rowIndex++;
     }
-    // If we've reached here, add a new row at the end
-    worksheet.addRow([date]);
-    return worksheet.rowCount;
+    worksheet.getCell(`A${rowIndex}`).value = date; // Set the date in the next available row
+    return rowIndex;
 }
-
-
-// Post endpoint to type the data on the excel file that located in the public folder
