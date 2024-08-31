@@ -246,7 +246,7 @@ export default function Payment_Calculation() {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>Ödeme Ekleme</Typography>
+      <Typography variant="h4" gutterBottom>Ödeme, Tahsilat ve Veresiye İşlemleri</Typography>
       <form noValidate autoComplete="off">
         <Grid container spacing={2}>
 
