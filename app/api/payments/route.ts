@@ -57,14 +57,17 @@ import { serverBaseUrl } from '@/components/serverConfig';
 
 export async function PUT(request: NextRequest) {
     try {
-        const { date, payments, totalPrice, imageBuffer } = await request.json();
+        const data = await request.json();
+        const { id, date, price, billNo, name, paymentType, info, image, userName } = data;
+
+        console.log('PUT request received with the following data:', data);
+        
 
         const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
         const uploadsDir = path.join(publicDir, 'uploads');
         const filePath = path.join(publicDir, fileName);
 
-        console.log(payments);
 
         const dateOnly = date.split(' ')[0]; // Output: "DD.MM.YYYY"
 
@@ -115,11 +118,11 @@ export async function PUT(request: NextRequest) {
         // Determine the index to start adding new rows
         const startRow = worksheet.actualRowCount + 1;
 
-        // Add the new products starting from the correct row
-        payments.forEach((product: any, index: number) => {
-            const productRow = Array.isArray(product) ? product : Object.values(product);
-            worksheet.insertRow(startRow + index, productRow);
-        });
+        // // Add the new products starting from the correct row
+        // payments.forEach((product: any, index: number) => {
+        //     const productRow = Array.isArray(product) ? product : Object.values(product);
+        //     worksheet.insertRow(startRow + index, productRow);
+        // });
 
         const firstProductRowIndex = startRow;
 
@@ -131,7 +134,7 @@ export async function PUT(request: NextRequest) {
             oldImageUrl = (imageCell.value as ExcelJS.CellHyperlinkValue).hyperlink;
         }
 
-        if (imageBuffer) {
+        if (image) {
 
             // Generate a filename based on the date
             const dateFormatted = dateOnly.replace(/\./g, '-'); // Convert '25.08.2024' to '25-08-2024'
@@ -150,7 +153,7 @@ export async function PUT(request: NextRequest) {
             }
 
             // Save the new image
-            const buffer = Buffer.from(imageBuffer.split(',')[1], 'base64');
+            const buffer = Buffer.from(image.split(',')[1], 'base64');
             await fs.writeFile(imageFilePath, buffer);
 
             const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
@@ -178,27 +181,27 @@ export async function PUT(request: NextRequest) {
 
 
 
-        // Loop through the products and update the first worksheet
-        payments.forEach((product: any) => {
-            const { 'Fiyat': price, 'Ödeme Türü': paymentType } = product;
+        // // Loop through the products and update the first worksheet
+        // payments.forEach((product: any) => {
+        //     const { 'Fiyat': price, 'Ödeme Türü': paymentType } = product;
 
-            const columnLetter = paymentTypeColumnMap[paymentType];
+        //     const columnLetter = paymentTypeColumnMap[paymentType];
 
-            if (columnLetter) {
-                let targetRow: number;
-                targetRow = findRowForDate(worksheet1, date, 2); // Start from row 2 for 'Nakit'
-                const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-                const currentValue = targetCell.value || 0;
-                targetCell.value = (currentValue as number) + price;
-            }
-        });
+        //     if (columnLetter) {
+        //         let targetRow: number;
+        //         targetRow = findRowForDate(worksheet1, date, 2); // Start from row 2 for 'Nakit'
+        //         const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
+        //         const currentValue = targetCell.value || 0;
+        //         targetCell.value = (currentValue as number) + price;
+        //     }
+        // });
 
         // Save the updated workbook back to the file
         await workbook.xlsx.writeFile(filePath);
 
         return NextResponse.json({ message: 'Products and image link successfully updated' }, { status: 200 });
     } catch (error) {
-        console.error('Error in PUT function:', error);
+        console.log('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }

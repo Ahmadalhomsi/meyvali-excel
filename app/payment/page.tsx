@@ -62,7 +62,6 @@ export default function Payment_Calculation() {
     image: null,
   });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [productIdCounter, setProductIdCounter] = useState<number>(1);
   const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -91,8 +90,8 @@ export default function Payment_Calculation() {
         setPayments(productsWithIds);
 
         // Update the productIdCounter to avoid ID conflicts
-        const maxId = Math.max(...productsWithIds.map((product: { id: any; }) => product.id), 0);
-        setProductIdCounter(maxId + 1);
+        // const maxId = Math.max(...productsWithIds.map((product: { id: any; }) => product.id), 0);
+        // setProductIdCounter(maxId + 1);
       }
     } catch (error) {
       console.error('Error fetching today\'s products:', error);
@@ -149,7 +148,7 @@ export default function Payment_Calculation() {
         // Format date and construct image URL outside the loop
         uniqueId = editingId;
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
-        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+        const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;
 
         await updatePayment(currentPayment);
 
@@ -160,7 +159,7 @@ export default function Payment_Calculation() {
         // Update the payment with the new image URL
         const updatedPayments = payments.map((payment) =>
           payment.id === editingId
-            ? { ...currentPayment }
+            ? { ...currentPayment, image: imageUrl }
             : payment
         );
 
@@ -172,10 +171,10 @@ export default function Payment_Calculation() {
         // Format date and construct image URL outside the loop
         uniqueId = uuidv4();
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
-        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+        const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
-        const newPayment = { ...currentPayment, image: imageUrl };
+        const newPayment = { ...currentPayment, id: uniqueId };
 
         await updatePayment(newPayment);
 

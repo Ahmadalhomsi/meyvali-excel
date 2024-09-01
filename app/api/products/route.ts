@@ -61,16 +61,14 @@ export async function GET(request: NextRequest) {
     }
 }
 
-
-
-
-
 export async function PUT(request: NextRequest) {
     try {
         const data = await request.json();
         const { id, category, name, paymentType, info, date, image, userName } = data;
         const quantity = parseFloat(data.quantity);
         const price = parseFloat(data.price);
+
+        console.log('PUT request received with the following data:', data);
 
         console.log("UUSSSSER NAME", userName);
 
