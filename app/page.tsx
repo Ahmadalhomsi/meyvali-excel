@@ -144,23 +144,32 @@ export default function ProductPage() {
         uniqueId = editingId;
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
-        
+
+
+
+        // Update the product list with the new values
+        const updatedProducts = products.map((product) =>
+          product.id === editingId
+            ? { ...currentProduct }
+            : product
+        );
+
+        // Wait for the update to complete before proceeding
+        await updateProduct(currentProduct);
+
         // Append the timestamp only when editing the image
         const timestamp = new Date().getTime();
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
-      
+
         // Update the product list with the new values
-        const updatedProducts = products.map((product) =>
+        const updatedProductsx = products.map((product) =>
           product.id === editingId
             ? { ...currentProduct, image: imageUrl }
             : product
         );
-      
-        // Wait for the update to complete before proceeding
-        await updateProduct(currentProduct);
-      
+
         // Update the state with the new product list
-        setProducts(updatedProducts);
+        setProducts(updatedProductsx);
         setEditingId(null);
         toast.success('Ürün başarıyla güncellendi!');
         setIsLoading(false);
