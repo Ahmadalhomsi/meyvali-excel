@@ -31,7 +31,6 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { serverBaseUrl } from '@/components/serverConfig';
 import { useUser } from "@clerk/nextjs";
-import { stringify } from 'querystring';
 
 
 // Define the product type
@@ -123,11 +122,10 @@ export default function ProductPage() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const updatedProduct = {
+    setCurrentProduct({
       ...currentProduct,
       [e.target.name]: e.target.value,
-    };
-    setCurrentProduct(updatedProduct);
+    });
   };
 
   const { user } = useUser();
@@ -170,14 +168,6 @@ export default function ProductPage() {
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
 
-
-        // Update the product list with the new values
-        const updatedProducts = products.map((product) =>
-          product.id === editingId
-            ? { ...currentProduct }
-            : product
-        );
-
         // Wait for the update to complete before proceeding
         await updateProduct(currentProduct);
 
@@ -186,14 +176,14 @@ export default function ProductPage() {
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
 
         // Update the product list with the new values
-        const updatedProductsx = products.map((product) =>
+        const updatedProducts = products.map((product) =>
           product.id === editingId
             ? { ...currentProduct, image: imageUrl }
             : product
         );
 
         // Update the state with the new product list
-        setProducts(updatedProductsx);
+        setProducts(updatedProducts);
         setEditingId(null);
         toast.success('Ürün başarıyla güncellendi!');
         setIsLoading(false);
@@ -202,7 +192,6 @@ export default function ProductPage() {
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
-
 
         const newProduct = { ...currentProduct, id: uniqueId };
 
@@ -229,7 +218,7 @@ export default function ProductPage() {
       });
     } catch (error) {
       console.log('Error handling product:', error);
-      // Error toast is already shown in `updateProduct`, so no need to show another one here
+      toast.error('Ürün eklenirken bir hata oluştu.');
     }
   };
 
@@ -501,11 +490,11 @@ export default function ProductPage() {
                 />
               }
               label="Bugün"
-              sx={{ marginTop: '8px', marginLeft: '4px' }}
+              sx={{ marginTop: '10px', marginLeft: '5px' }}
             />
           </Grid>
 
-          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", marginTop: 2, marginLeft: 2 }}>
+          <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", flexDirection: "row", alignItems: "center"}}>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <input
                 accept="image/*"
@@ -522,7 +511,7 @@ export default function ProductPage() {
             </Box>
 
             {currentProduct.image && (
-              <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", marginLeft: 2 }}>
+              <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", marginLeft: 1 }}>
                 <img
                   src={currentProduct.image}
                   alt="Product"
@@ -533,10 +522,7 @@ export default function ProductPage() {
                 </IconButton>
               </Box>
             )}
-          </Box>
-
-
-
+          </Grid>
 
           <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
             <DialogTitle>

@@ -14,8 +14,12 @@ import {
   Divider,
   CircularProgress,
   Grid,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, AddAPhoto, Warning } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -24,15 +28,19 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { useUser } from '@clerk/nextjs';
+import { serverBaseUrl } from '@/components/serverConfig';
+import { v4 as uuidv4 } from 'uuid';
 
-interface Product {
-  id: number;
+interface Payment {
+  id: string;
   price: number;
   billNo: string;
   name: string;
   paymentType: string | null;
   info: string;
   date: string; // Store date as a string in YYYY-MM-DD format
+  image: string | null;
 }
 
 const paymentTypes = [
@@ -42,21 +50,23 @@ const paymentTypes = [
 ];
 
 export default function Payment_Calculation() {
-  const [payments, setPayments] = useState<Product[]>([]);
-  const [currentPayment, setCurrentPayment] = useState<Product>({
-    id: 0,
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [currentPayment, setCurrentPayment] = useState<Payment>({
+    id: uuidv4(),
     price: 0,
     billNo: '',
     name: '',
     paymentType: null,
     info: '',
-    date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm') // Initialize date in Turkish format
+    date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Initialize date in Turkish format
+    image: null,
   });
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [productIdCounter, setProductIdCounter] = useState<number>(1);
   const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
-
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
 
   useEffect(() => {
     fetchTodayProducts();
@@ -66,16 +76,17 @@ export default function Payment_Calculation() {
     const today = dayjs().format('DD.MM.YYYY HH:mm');
     setIsLoading(true);
     try {
-      const response = await axios.get(`/api/payments?date=${today}`);
+      const response = await axios.get(`/api/payments?date=${today.split(' ')[0]}`);
       if (response.status === 200) {
-        const productsWithIds = response.data.payments.map((product: any, index: number) => ({
-          id: index + 1,  // or however the ID should be generated
+        const productsWithIds = response.data.payments.map((product: any) => ({
+          id: product.ID,  // or however the ID should be generated
           date: product['Tarih'],
           price: parseFloat(product['Fiyat']),
           name: product['Adisyon No'],
           billNo: product['Adisyon Adı'],
           paymentType: product['Ödeme Türü'],
           info: product['Ek Bilgi'],
+          image: product['Fotoğraf']?.hyperlink,
         }));
         setPayments(productsWithIds);
 
@@ -91,52 +102,124 @@ export default function Payment_Calculation() {
     }
   };
 
-  const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setCurrentPayment({
       ...currentPayment,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleAddProduct = () => {
-    if (editingIndex !== null) { // Updating
-      const updatedProducts = payments.map((product, index) =>
-        index === editingIndex ? { ...currentPayment, id: payments[editingIndex].id } : product
-      );
-      setPayments(updatedProducts);
-      setEditingIndex(null);
-      toast.success('Ödeme başarıyla güncellendi!');
-    } else { // Adding
-      setPayments([...payments, { ...currentPayment, id: productIdCounter }]);
-      setProductIdCounter(productIdCounter + 1);
-      toast.success('Ödeme başarıyla eklendi!');
+  const { user } = useUser();
+
+  const updatePayment = async (payment: Payment) => {
+    console.log('Updating payment:', payment);
+
+    try {
+
+      const userName = user?.username || user?.fullName || user?.emailAddresses[0].emailAddress;
+
+      console.log('User name:', userName);
+
+
+      if (!userName) {
+        toast.error('Kullanıcı adı alınamadı. Lütfen tekrar deneyin.');
+      }
+
+      // Pass the userName along with the product data to the backend
+      await axios.put(`/api/payments/`, {
+        ...payment,
+        userName, // Include the userName in the request body
+      });
+    } catch (error) {
+      console.log('Error updating product:', error);
+      throw error; // Rethrow the error to handle it in the calling function
     }
-
-    setCurrentPayment({
-      id: 0,
-      price: 0,
-      billNo: '',
-      name: '',
-      paymentType: null,
-      info: '',
-      date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Reset to today's date
-    });
-    // setUseToday(true); // Reset checkbox to true after adding the product
   };
 
-  const handleEditProduct = (id: number) => {
-    const index = payments.findIndex(product => product.id === id);
-    setCurrentPayment(payments[index]);
-    setEditingIndex(index);
-    setUseToday(payments[index].date === dayjs().locale('tr').format('DD.MM.YYYY')); // Determine if the date is today
+  const handleAddPayment = async () => {
+
+    console.log('Current payment:', currentPayment);
+
+
+    try {
+      let uniqueId
+
+      if (editingId !== null) {
+        setIsLoading(true);
+        // Format date and construct image URL outside the loop
+        uniqueId = editingId;
+        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+
+        await updatePayment(currentPayment);
+
+        // Append the timestamp only when editing the image
+        const timestamp = new Date().getTime();
+        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
+
+        // Update the payment with the new image URL
+        const updatedPayments = payments.map((payment) =>
+          payment.id === editingId
+            ? { ...currentPayment }
+            : payment
+        );
+
+        setPayments(updatedPayments);
+        setEditingId(null);
+        toast.success('Ödeme başarıyla güncellendi!');
+        setIsLoading(false);
+      } else {
+        // Format date and construct image URL outside the loop
+        uniqueId = uuidv4();
+        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
+
+        const newPayment = { ...currentPayment, image: imageUrl };
+
+        await updatePayment(newPayment);
+
+        newPayment.image = imageUrl;
+
+        setPayments([...payments, newPayment]);
+        toast.success('Ödeme başarıyla eklendi!');
+      }
+
+      setCurrentPayment({
+        id: uniqueId,
+        price: 0,
+        billNo: '',
+        name: '',
+        paymentType: null,
+        info: '',
+        date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Reset to today's date
+        image: null,
+      });
+
+    } catch (error) {
+      console.log('Error handling product:', error);
+      toast.error('Ödeme işlenirken bir hata oluştu.');
+    }
   };
 
-  const handleDeleteProduct = (id: number) => {
-    const updatedProducts = payments.filter((product) => product.id !== id);
-    setPayments(updatedProducts);
-    toast.success('Ödeme başarıyla silindi!');
+  const handleEditProduct = (id: string) => {
+    const paymentToEdit = payments.find(payment => payment.id === id);
+    if (paymentToEdit) {
+      setCurrentPayment(paymentToEdit);
+      setEditingId(id);
+    }
+  };
+
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      await axios.delete(`/api/payments/`, { data: { id } });
+      const updatedPayments = payments.filter(payment => payment.id !== id);
+      setPayments(updatedPayments);
+      toast.success('Ödeme başarıyla silindi!');
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast.error('Ödeme silinirken bir hata oluştu.');
+    }
   };
 
   const handleCheckboxChange = () => {
@@ -147,70 +230,79 @@ export default function Payment_Calculation() {
   };
 
   const handleDateChange = (newValue: dayjs.Dayjs | null) => {
-    setCurrentPayment({
+    const newDate = newValue ? newValue.format('DD.MM.YYYY') : '';
+    const updatedPayment = {
       ...currentPayment,
-      date: newValue ? newValue.format('DD.MM.YYYY') : ''
-    });
+      date: newDate,
+    };
+    setCurrentPayment(updatedPayment);
   };
 
   const calculateTotalPrice = () => {
     return payments.reduce((total, product) => total + parseFloat(product.price + ""), 0).toFixed(2);
   };
 
-  const formatPrice = (price : any) => {
+  const formatPrice = (price: any) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
-  
 
-  const uploadProducts = async () => {
-
-    if (!image) {
-      toast('Fotoğraf Eklenmedi', {
-        icon: '❗',
-      });
-    }
-
-    const today = dayjs().format('DD.MM.YYYY');
-    setIsLoading(true);
-    try {
-      const response = await axios.put('/api/payments', {
-        date: today,
-        payments: payments.map(p => ({
-          'Tarih': p.date,
-          'Fiyat': parseInt(p.price + ""),
-          'Adisyon No': p.billNo,
-          'Adisyon Adı': p.name,
-          'Ödeme Türü': p.paymentType,
-          'Ek Bilgi': p.info,
-        })),
-        totalPrice: calculateTotalPrice(),
-        imageBuffer: image
-      });
-      if (response.status === 200) {
-        toast.success('Ödemeler başarıyla güncellendi!');
-      }
-    } catch (error) {
-      console.error('Error updating products:', error);
-      toast.error('Ödemeler güncellenirken bir hata oluştu.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Image upload
-  const [image, setImage] = useState<string | null>(null);
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        setImage(e.target?.result as string);
+      reader.onload = async (e) => {
+        const imageDataUrl = e.target?.result as string;
+        const updatedPayment = { ...currentPayment, image: imageDataUrl };
+        setCurrentPayment(updatedPayment);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleImageDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleImageDelete = async () => {
+    if (!currentPayment.image) {
+      toast.error('No image to delete.');
+      return;
+    }
+
+    setIsDeletingPhoto(true);
+    try {
+      // Extract the filename from the image URL
+      const filename = currentPayment.image.split('/').pop();
+
+      console.log('Deleting photo:', filename);
+
+      // Make an API call to delete the image from the server
+      await axios.delete(`/api/payments`, {
+        data: {
+          id: currentPayment.id,
+          imageOnly: true
+        }
+      });
+
+      // Update the current Payment state
+      setCurrentPayment({ ...currentPayment, image: null });
+
+      // If we're editing an existing Payment, update it in the Payments list
+      if (editingId) {
+        setPayments(payments.map(payment =>
+          payment.id === editingId ? { ...payment, image: null } : payment
+        ));
+      }
+
+      toast.success('Fotoğraf başarıyla silindi!');
+    } catch (error) {
+      console.log('Error deleting photo:', error);
+      toast.error('Failed to delete photo. Please try again.');
+    } finally {
+      setIsDeletingPhoto(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
@@ -220,6 +312,33 @@ export default function Payment_Calculation() {
     { field: 'name', headerName: 'Adisyon Adı', width: 180 },
     { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
     { field: 'info', headerName: 'Ek Bilgi', width: 200 },
+    {
+      field: 'image',
+      headerName: 'Fotoğraf',
+      width: 100,
+      renderCell: (params) => {
+        // Log the value to the console
+        console.log('Image URLZZZZ:', params.value);
+
+        return params.value ? (
+          <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: 0 }}>
+            <img
+              src={params.value}
+              alt="Product"
+              style={{
+                width: 'auto',  // Let the width adjust automatically
+                height: '140%', // Make the image take the full height of the cell
+                objectFit: 'contain', // Ensure the entire image is visible without distortion
+                cursor: 'pointer',
+                margin: 0, // Remove any margin around the image
+              }}
+            />
+          </a>
+        ) : (
+          <Typography>No Image</Typography>
+        );
+      },
+    },
     {
       field: 'actions',
       headerName: 'İşlemler',
@@ -249,7 +368,6 @@ export default function Payment_Calculation() {
       <Typography variant="h4" gutterBottom>Ödeme, Tahsilat ve Veresiye İşlemleri</Typography>
       <form noValidate autoComplete="off">
         <Grid container spacing={2}>
-
           <Grid item xs={6} sm={1.5} md={1.4}>
             <div style={{ display: 'flex' }}>
               <TextField
@@ -298,28 +416,6 @@ export default function Payment_Calculation() {
             />
           </Grid>
 
-          <Box sx={{ display: "flex", alignItems: "center", marginTop: 2, marginLeft: 2 }}>
-            <Button
-              variant="contained"
-              component="label"
-              sx={{ marginRight: 2 }}
-            >
-              Fotoğraf Yükle
-              <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
-            </Button>
-
-            {image && (
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <img
-                  src={image}
-                  alt="Uploaded"
-                  style={{ maxWidth: 60, maxHeight: 60, marginRight: 10, borderRadius: 4 }}
-                />
-              </Box>
-            )}
-          </Box>
-
-
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               label="Ek Bilgi"
@@ -332,7 +428,7 @@ export default function Payment_Calculation() {
             <br />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
               <DatePicker
                 label="Tarih"
@@ -341,7 +437,7 @@ export default function Payment_Calculation() {
                 value={dayjs(currentPayment.date, 'DD.MM.YYYY HH:mm')}
                 onChange={handleDateChange}
                 disabled={useToday}
-                sx={{ width: '40%' }}
+                sx={{ width: '55%' }}
               />
             </LocalizationProvider>
 
@@ -359,6 +455,60 @@ export default function Payment_Calculation() {
             />
           </Grid>
 
+          <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="raised-button-file"
+                type="file"
+                onChange={handleImageSelect}
+              />
+              <label htmlFor="raised-button-file">
+                <Button variant="contained" component="span" startIcon={<AddAPhoto />}>
+                  {currentPayment.image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
+                </Button>
+              </label>
+            </Box>
+
+            {currentPayment.image && (
+              <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", marginLeft: 1 }}>
+                <img
+                  src={currentPayment.image}
+                  alt="Payment"
+                  style={{ maxWidth: 60, maxHeight: 60, borderRadius: 4 }}
+                />
+                <IconButton onClick={handleImageDeleteClick} color="secondary" sx={{ marginLeft: 1 }}>
+                  <Delete />
+                </IconButton>
+              </Box>
+            )}
+          </Grid>
+
+          <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+            <DialogTitle>
+              <Warning color="warning" /> Fotoğrafı Sil
+            </DialogTitle>
+            <DialogContent>
+              <Typography>
+                Bu fotoğrafı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setIsDeleteDialogOpen(false)} color="primary">
+                İptal
+              </Button>
+              <Button
+                onClick={handleImageDelete}
+                color="secondary"
+                disabled={isDeletingPhoto}
+                startIcon={isDeletingPhoto ? <CircularProgress size={20} /> : <Delete />}
+              >
+                {isDeletingPhoto ? 'Siliniyor...' : 'Sil'}
+              </Button>
+            </DialogActions>
+          </Dialog>
+
         </Grid>
         <br />
 
@@ -366,16 +516,11 @@ export default function Payment_Calculation() {
         <Button
           variant="contained"
           color="primary"
-          onClick={handleAddProduct}
+          onClick={handleAddPayment}
         >
-          Ödeme {editingIndex !== null ? 'Güncelle' : 'Ekle'}
+          Ödeme {editingId !== null ? 'Güncelle' : 'Ekle'}
         </Button>
       </form>
-
-      {/* <Typography variant="h6" fontWeight="bold" style={{ padding: 5 }}>
-        Bugünkü eklenen Ödemeler:
-      </Typography> */}
-
 
       <Divider sx={{ my: 1 }}>Bugünkü eklenen ödemeler:</Divider>
 
@@ -405,16 +550,8 @@ export default function Payment_Calculation() {
       <Typography variant="h6" fontWeight="bold" sx={{ mt: 2 }}>
         Toplam Fiyat: {formatPrice(calculateTotalPrice())} TL
       </Typography>
-
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={uploadProducts}
-        disabled={isLoading}
-        sx={{ mt: 2 }}
-      >
-        {isLoading ? 'Kaydediliyor...' : 'Kaydet'}
-      </Button>
     </Container >
   );
 }
+
+
