@@ -121,7 +121,6 @@ export default function ProductPage() {
     setCurrentProduct(updatedProduct);
   };
 
-
   const updateProduct = async (product: Product) => {
     console.log('Updating product:', product);
 
@@ -145,24 +144,26 @@ export default function ProductPage() {
         uniqueId = editingId;
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
-        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
-
+        
+        // Append the timestamp only when editing the image
+        const timestamp = new Date().getTime();
+        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
+      
         // Update the product list with the new values
         const updatedProducts = products.map((product) =>
           product.id === editingId
-            ? { ...currentProduct }
+            ? { ...currentProduct, image: imageUrl }
             : product
         );
-
+      
         // Wait for the update to complete before proceeding
         await updateProduct(currentProduct);
-
-        // Only update state if the API call is successful
+      
+        // Update the state with the new product list
         setProducts(updatedProducts);
         setEditingId(null);
         toast.success('Ürün başarıyla güncellendi!');
         setIsLoading(false);
-
       } else {
         uniqueId = uuidv4();
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
@@ -243,8 +244,6 @@ export default function ProductPage() {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-
-
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -263,7 +262,6 @@ export default function ProductPage() {
     setCurrentProduct(updatedProduct);
   };
 
-
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
     { field: 'date', headerName: 'Tarih', width: 100 },
@@ -277,8 +275,11 @@ export default function ProductPage() {
       field: 'image',
       headerName: 'Fotoğraf',
       width: 100,
-      renderCell: (params) =>
-        params.value ? (
+      renderCell: (params) => {
+        // Log the value to the console
+        // console.log('Image URLZZZZ:', params.value);
+
+        return params.value ? (
           <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: 0 }}>
             <img
               src={params.value}
@@ -294,7 +295,8 @@ export default function ProductPage() {
           </a>
         ) : (
           <Typography>No Image</Typography>
-        ),
+        );
+      },
     },
 
     {
