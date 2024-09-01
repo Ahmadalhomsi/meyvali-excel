@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Container,
   TextField,
@@ -505,51 +505,51 @@ export default function ProductPage() {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={2.9}>
-            <input
-              accept="image/*"
-              style={{ display: 'none' }}
-              id="raised-button-file"
-              type="file"
-              onChange={handleImageSelect}
-            />
-            <label htmlFor="raised-button-file">
-              <Button variant="contained" component="span" sx={{ marginTop: 1 }} startIcon={<AddAPhoto />}>
-                {currentProduct.image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
-              </Button>
-            </label>
-            {currentProduct.image && (
-              <IconButton onClick={handleImageDelete} color="secondary">
-                <Delete />
-              </IconButton>
-            )}
-          </Grid>
-
-          {currentProduct.image && (
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <img
-                src={currentProduct.image}
-                alt="Product"
-                style={{ maxWidth: 60, maxHeight: 60, marginRight: 10, borderRadius: 4, marginTop: 10 }}
+          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", marginTop: 2, marginLeft: 2 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="raised-button-file"
+                type="file"
+                onChange={handleImageSelect}
               />
-              <IconButton onClick={handleImageDeleteClick} color="secondary">
-                <Delete />
-              </IconButton>
+              <label htmlFor="raised-button-file">
+                <Button variant="contained" component="span"  startIcon={<AddAPhoto />}>
+                  {currentProduct.image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
+                </Button>
+              </label>
             </Box>
-          )}
+
+            {currentProduct.image && (
+              <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", marginLeft: 2 }}>
+                <img
+                  src={currentProduct.image}
+                  alt="Product"
+                  style={{ maxWidth: 60, maxHeight: 60, borderRadius: 4 }}
+                />
+                <IconButton onClick={handleImageDeleteClick} color="secondary" sx={{ marginLeft: 1 }}>
+                  <Delete />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+
+
+
 
           <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
             <DialogTitle>
-              <Warning color="warning" /> Delete Photo
+              <Warning color="warning" /> Fotoğrafı Sil
             </DialogTitle>
             <DialogContent>
               <Typography>
-                Are you sure you want to delete this photo? This action cannot be undone.
+                Bu fotoğrafı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
               </Typography>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setIsDeleteDialogOpen(false)} color="primary">
-                Cancel
+                İptal
               </Button>
               <Button
                 onClick={handleImageDelete}
@@ -557,7 +557,7 @@ export default function ProductPage() {
                 disabled={isDeletingPhoto}
                 startIcon={isDeletingPhoto ? <CircularProgress size={20} /> : <Delete />}
               >
-                {isDeletingPhoto ? 'Deleting...' : 'Delete'}
+                {isDeletingPhoto ? 'Siliniyor...' : 'Sil'}
               </Button>
             </DialogActions>
           </Dialog>
