@@ -146,7 +146,6 @@ export default function ProductPage() {
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
 
 
-
         // Update the product list with the new values
         const updatedProducts = products.map((product) =>
           product.id === editingId

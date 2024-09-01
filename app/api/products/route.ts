@@ -114,7 +114,7 @@ export async function PUT(request: NextRequest) {
             ];
         }
 
-        // Find the row with the given ID
+        // Find the row with the given ID or add a new row
         let rowToUpdate: ExcelJS.Row | undefined;
         worksheet.eachRow((row, rowNumber) => {
             if (row.getCell(9).value === id) {
@@ -133,7 +133,7 @@ export async function PUT(request: NextRequest) {
             rowToUpdate.getCell(7).value = info;
         } else {
             // Insert new row if ID not found
-            const newRow = [date, category, name, quantity, price, paymentType, info, , id, ''];
+            const newRow = [date, category, name, quantity, price, paymentType, info, , id];
             rowToUpdate = worksheet.addRow(newRow);
         }
 
@@ -160,6 +160,21 @@ export async function PUT(request: NextRequest) {
             console.error('Image is not a valid base64-encoded string.');
         }
 
+        // Get all products for the same date
+        const allProducts : any[] = [];
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber > 1) { // Skip header row
+                const rowDate = row.getCell(1).value?.toString().split(' ')[0];
+                if (rowDate === dateOnly) {
+                    allProducts.push({
+                        category: row.getCell(2).value?.toString(),
+                        price: parseFloat(row.getCell(5).value?.toString() || '0'),
+                        paymentType: row.getCell(6).value?.toString()
+                    });
+                }
+            }
+        });
+
         // Update the first worksheet based on category
         const worksheet1 = workbook.getWorksheet(1);
         if (!worksheet1) {
@@ -184,26 +199,35 @@ export async function PUT(request: NextRequest) {
             'EKSTRA ELEMAN': 'P',
         };
 
-        const columnLetter = categoryColumnMap[category];
-
-        if (columnLetter) {
-            let targetRow: number;
-            if (paymentType === 'Nakit') {
-                targetRow = findRowForDate(worksheet1, date, 2); // Start from row 2 for 'Nakit'
-                const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-                const currentValue = targetCell.value || 0;
-                targetCell.value = (currentValue as number) + price;
-            } else {
-                targetRow = findRowForDate(worksheet1, date, 34); // Start from row 34 for other payment types
-                const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-                targetCell.value = price;
+        // Sum products by category and payment type
+        const summedProducts: { [key: string]: { nakit: number, other: number } } = {};
+        allProducts.forEach(product => {
+            if (!summedProducts[product.category]) {
+                summedProducts[product.category] = { nakit: 0, other: 0 };
             }
-        }
+            if (product.paymentType === 'Nakit') {
+                summedProducts[product.category].nakit += product.price;
+            } else {
+                summedProducts[product.category].other += product.price;
+            }
+        });
+
+        // Update worksheet1 with summed values
+        Object.entries(summedProducts).forEach(([category, sums]) => {
+            const columnLetter = categoryColumnMap[category];
+            if (columnLetter) {
+                const nakitRow = findRowForDate(worksheet1, dateOnly, 2);
+                const otherRow = findRowForDate(worksheet1, dateOnly, 34);
+
+                worksheet1.getCell(`${columnLetter}${nakitRow}`).value = sums.nakit;
+                worksheet1.getCell(`${columnLetter}${otherRow}`).value = sums.other;
+            }
+        });
 
         // Save the updated workbook back to the file
         await workbook.xlsx.writeFile(filePath);
 
-        return NextResponse.json({ message: 'Product and image link successfully updated', id: id || uuidv4() }, { status: 200 });
+        return NextResponse.json({ message: 'Product and summary successfully updated', id: id || uuidv4() }, { status: 200 });
     } catch (error) {
         console.error('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
