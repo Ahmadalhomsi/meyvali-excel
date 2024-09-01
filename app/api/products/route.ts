@@ -68,9 +68,12 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const data = await request.json();
-        const { id, category, name, paymentType, info, date, image } = data;
+        const { id, category, name, paymentType, info, date, image, userName } = data;
         const quantity = parseFloat(data.quantity);
         const price = parseFloat(data.price);
+
+        console.log("UUSSSSER NAME", userName);
+
 
         const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
@@ -97,7 +100,7 @@ export async function PUT(request: NextRequest) {
 
         // If the worksheet is empty, add the template headers and set column widths
         if (worksheet.actualRowCount === 0) {
-            const headers = ['Tarih', 'Katagori', 'Ürün Adı', 'Adet/Kg', 'Fiyat', 'Ödeme Türü', 'Ek Bilgi', 'Fotoğraf', 'ID'];
+            const headers = ['Tarih', 'Katagori', 'Ürün Adı', 'Adet/Kg', 'Fiyat', 'Ödeme Türü', 'Ek Bilgi', 'Fotoğraf', 'ID', 'Kullanıcı'];
             worksheet.addRow(headers);
 
             // Adjust column widths
@@ -110,7 +113,8 @@ export async function PUT(request: NextRequest) {
                 { width: 15 }, // Ödeme Türü
                 { width: 25 }, // Ek Bilgi
                 { width: 15 }, // Fotoğraf
-                { width: 40 }, // ID (increased width for UUID)
+                { width: 5 }, // ID (increased width for UUID)
+                { width: 20 } // Kullanıcı
             ];
         }
 
@@ -131,9 +135,10 @@ export async function PUT(request: NextRequest) {
             rowToUpdate.getCell(5).value = price;
             rowToUpdate.getCell(6).value = paymentType;
             rowToUpdate.getCell(7).value = info;
+            rowToUpdate.getCell(10).value = userName;
         } else {
             // Insert new row if ID not found
-            const newRow = [date, category, name, quantity, price, paymentType, info, , id];
+            const newRow = [date, category, name, quantity, price, paymentType, info, , id, userName];
             rowToUpdate = worksheet.addRow(newRow);
         }
 
@@ -161,7 +166,7 @@ export async function PUT(request: NextRequest) {
         }
 
         // Get all products for the same date
-        const allProducts : any[] = [];
+        const allProducts: any[] = [];
         worksheet.eachRow((row, rowNumber) => {
             if (rowNumber > 1) { // Skip header row
                 const rowDate = row.getCell(1).value?.toString().split(' ')[0];

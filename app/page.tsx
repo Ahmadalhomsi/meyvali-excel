@@ -26,6 +26,9 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { serverBaseUrl } from '@/components/serverConfig';
+import { useUser } from "@clerk/nextjs";
+import { stringify } from 'querystring';
+
 
 // Define the product type
 interface Product {
@@ -101,12 +104,12 @@ export default function ProductPage() {
           paymentType: product['Ödeme Türü'],
           info: product['Ek Bilgi'],
           date: product['Tarih'],
-          image: product['Fotoğraf'].hyperlink,
+          image: product['Fotoğraf']?.hyperlink,
         }));
         setProducts(productsWithIds);
       }
     } catch (error) {
-      console.error('Error fetching today\'s products:', error);
+      console.log('Error fetching today\'s products:', error);
       toast.error('Günün ürünleri alınırken bir hata oluştu.');
     } finally {
       setIsLoading(false);
@@ -121,13 +124,29 @@ export default function ProductPage() {
     setCurrentProduct(updatedProduct);
   };
 
+  const { user } = useUser();
+
   const updateProduct = async (product: Product) => {
     console.log('Updating product:', product);
 
     try {
-      await axios.put(`/api/products/`, product);
+
+      const userName = user?.username || user?.fullName || user?.emailAddresses[0].emailAddress;
+
+      console.log('User name:', userName);
+
+
+      if (!userName) {
+        toast.error('Kullanıcı adı alınamadı. Lütfen tekrar deneyin.');
+      }
+
+      // Pass the userName along with the product data to the backend
+      await axios.put(`/api/products/`, {
+        ...product,
+        userName, // Include the userName in the request body
+      });
     } catch (error) {
-      console.error('Error updating product:', error);
+      console.log('Error updating product:', error);
       throw error; // Rethrow the error to handle it in the calling function
     }
   };
@@ -218,12 +237,12 @@ export default function ProductPage() {
 
   const handleDeleteProduct = async (id: string) => {
     try {
-      await axios.delete(`/api/products/${id}`);
+      await axios.delete(`/api/products/`, { data: { id } });
       const updatedProducts = products.filter((product) => product.id !== id);
       setProducts(updatedProducts);
       toast.success('Ürün başarıyla silindi!');
     } catch (error) {
-      console.error('Error deleting product:', error);
+      console.log('Error deleting product:', error);
       toast.error('Ürün silinirken bir hata oluştu.');
     }
   };
