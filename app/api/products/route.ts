@@ -255,3 +255,113 @@ function findRowForDate(worksheet: ExcelJS.Worksheet, date: string, startRow: nu
     worksheet.getCell(`A${rowIndex}`).value = date; // Set the date in the next available row
     return rowIndex;
 }
+
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { id, imageOnly } = await request.json();
+
+        if (!id) {
+            return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        }
+
+        const fileName = 'meyvali-excel.xlsx';
+        const publicDir = path.join(process.cwd(), 'public');
+        const uploadsDir = path.join(publicDir, 'uploads');
+        const filePath = path.join(publicDir, fileName);
+
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+
+        let worksheet = workbook.getWorksheet(3);
+        let worksheet1 = workbook.getWorksheet(1);
+
+        if (!worksheet || !worksheet1) {
+            return NextResponse.json({ error: 'Required worksheets not found' }, { status: 500 });
+        }
+
+        let deletedProduct: any = null;
+        let rowToDelete: number | null = null;
+
+        // Find the product to delete
+        worksheet.eachRow((row, rowNumber) => {
+            if (row.getCell(9).value === id) {
+                deletedProduct = {
+                    date: row.getCell(1).value?.toString().split(' ')[0],
+                    category: row.getCell(2).value?.toString(),
+                    price: parseFloat(row.getCell(5).value?.toString() || '0'),
+                    paymentType: row.getCell(6).value?.toString(),
+                    image: row.getCell(8).value
+                };
+                rowToDelete = rowNumber;
+            }
+        });
+
+        if (!deletedProduct || rowToDelete === null) {
+            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        }
+
+        // If imageOnly is true, only remove the image and its link
+        if (imageOnly && typeof deletedProduct.image === 'object' && deletedProduct.image?.hyperlink) {
+            const imageUrl = deletedProduct.image.hyperlink;
+            const imagePath = imageUrl.replace(serverBaseUrl, '');
+            const fullImagePath = path.join(publicDir, imagePath);
+
+            try {
+                // Delete the image file
+                await fs.unlink(fullImagePath);
+                console.log(`Deleted image: ${fullImagePath}`);
+
+                // Clear the cell that contains the image hyperlink
+                worksheet.getCell(rowToDelete, 8).value = null;
+            } catch (error) {
+                console.log(`Failed to delete image: ${fullImagePath}`, error);
+                return NextResponse.json({ error: 'Failed to delete the image' }, { status: 500 });
+            }
+        } else {
+            // If not imageOnly, delete the row from worksheet 3
+            worksheet.spliceRows(rowToDelete, 1);
+
+            // Update the sum in worksheet 1
+            const categoryColumnMap: { [key: string]: string } = {
+                'SÜT': 'C', 'ET-DANA': 'D', 'ET-KUZU': 'E', 'BEYAZ-ET': 'F',
+                'EKMEK': 'G', 'MARKET PAZAR RAMİ': 'H', 'PAÇA': 'I', 'İŞKEMBE': 'J',
+                'AMBALAJ MALZEMESİ': 'K', 'SU-ŞİŞE': 'L', 'MEŞRUBAT': 'M', 'TÜP': 'N',
+                'MAZOT': 'O', 'EKSTRA ELEMAN': 'P'
+            };
+
+            const columnLetter = categoryColumnMap[deletedProduct.category];
+            if (columnLetter) {
+                const rowIndex = deletedProduct.paymentType === 'Nakit'
+                    ? findRowForDate(worksheet1, deletedProduct.date, 2)
+                    : findRowForDate(worksheet1, deletedProduct.date, 34);
+
+                const cell = worksheet1.getCell(`${columnLetter}${rowIndex}`);
+                const currentValue = parseFloat(cell.value?.toString() || '0');
+                cell.value = Math.max(0, currentValue - deletedProduct.price); // Ensure the value doesn't go below 0
+            }
+
+            // Also delete the associated photo if it exists
+            if (typeof deletedProduct.image === 'object' && deletedProduct.image?.hyperlink) {
+                const imageUrl = deletedProduct.image.hyperlink;
+                const imagePath = imageUrl.replace(serverBaseUrl, '');
+                const fullImagePath = path.join(publicDir, imagePath);
+
+                try {
+                    await fs.unlink(fullImagePath);
+                    console.log(`Deleted image: ${fullImagePath}`);
+                } catch (error) {
+                    console.log(`Failed to delete image: ${fullImagePath}`, error);
+                }
+            }
+        }
+
+        // Save the updated workbook
+        await workbook.xlsx.writeFile(filePath);
+
+        return NextResponse.json({ message: 'Product successfully deleted' }, { status: 200 });
+    } catch (error) {
+        console.log('Error in DELETE function:', error);
+        return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
+    }
+}

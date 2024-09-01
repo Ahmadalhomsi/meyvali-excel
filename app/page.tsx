@@ -14,8 +14,12 @@ import {
   Divider,
   CircularProgress,
   Grid,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from '@mui/material';
-import { Edit, Delete, AddAPhoto } from '@mui/icons-material';
+import { Edit, Delete, AddAPhoto, Warning } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -68,6 +72,8 @@ export default function ProductPage() {
   const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
 
 
   useEffect(() => {
@@ -82,7 +88,7 @@ export default function ProductPage() {
         setCategories(response.data.categories);
       }
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.log('Error fetching categories:', error);
       toast.error('Kategoriler alınırken bir hata oluştu.');
     }
   };
@@ -222,7 +228,7 @@ export default function ProductPage() {
         image: null,
       });
     } catch (error) {
-      console.error('Error handling product:', error);
+      console.log('Error handling product:', error);
       // Error toast is already shown in `updateProduct`, so no need to show another one here
     }
   };
@@ -271,7 +277,7 @@ export default function ProductPage() {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -284,10 +290,51 @@ export default function ProductPage() {
     }
   };
 
-  const handleImageDelete = () => {
-    const updatedProduct = { ...currentProduct, image: null };
-    setCurrentProduct(updatedProduct);
+  const handleImageDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
   };
+
+  const handleImageDelete = async () => {
+    if (!currentProduct.image) {
+      toast.error('No image to delete.');
+      return;
+    }
+
+    setIsDeletingPhoto(true);
+    try {
+      // Extract the filename from the image URL
+      const filename = currentProduct.image.split('/').pop();
+
+      console.log('Deleting photo:', filename);
+
+      // Make an API call to delete the image from the server
+      await axios.delete(`/api/products`, {
+        data: {
+          id: currentProduct.id,
+          imageOnly: true
+        }
+      });
+
+      // Update the current product state
+      setCurrentProduct({ ...currentProduct, image: null });
+
+      // If we're editing an existing product, update it in the products list
+      if (editingId) {
+        setProducts(products.map(product =>
+          product.id === editingId ? { ...product, image: null } : product
+        ));
+      }
+
+      toast.success('Fotoğraf başarıyla silindi!');
+    } catch (error) {
+      console.log('Error deleting photo:', error);
+      toast.error('Failed to delete photo. Please try again.');
+    } finally {
+      setIsDeletingPhoto(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
 
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
@@ -304,7 +351,7 @@ export default function ProductPage() {
       width: 100,
       renderCell: (params) => {
         // Log the value to the console
-        // console.log('Image URLZZZZ:', params.value);
+        console.log('Image URLZZZZ:', params.value);
 
         return params.value ? (
           <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: 0 }}>
@@ -464,7 +511,7 @@ export default function ProductPage() {
               style={{ display: 'none' }}
               id="raised-button-file"
               type="file"
-              onChange={handleImageUpload}
+              onChange={handleImageSelect}
             />
             <label htmlFor="raised-button-file">
               <Button variant="contained" component="span" sx={{ marginTop: 1 }} startIcon={<AddAPhoto />}>
@@ -482,11 +529,38 @@ export default function ProductPage() {
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <img
                 src={currentProduct.image}
-                alt="Uploaded"
+                alt="Product"
                 style={{ maxWidth: 60, maxHeight: 60, marginRight: 10, borderRadius: 4, marginTop: 10 }}
               />
+              <IconButton onClick={handleImageDeleteClick} color="secondary">
+                <Delete />
+              </IconButton>
             </Box>
           )}
+
+          <Dialog open={isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+            <DialogTitle>
+              <Warning color="warning" /> Delete Photo
+            </DialogTitle>
+            <DialogContent>
+              <Typography>
+                Are you sure you want to delete this photo? This action cannot be undone.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setIsDeleteDialogOpen(false)} color="primary">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleImageDelete}
+                color="secondary"
+                disabled={isDeletingPhoto}
+                startIcon={isDeletingPhoto ? <CircularProgress size={20} /> : <Delete />}
+              >
+                {isDeletingPhoto ? 'Deleting...' : 'Delete'}
+              </Button>
+            </DialogActions>
+          </Dialog>
 
         </Grid>
         <br />
