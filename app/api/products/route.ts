@@ -5,6 +5,7 @@ import { promises as fs } from 'fs';
 import { v4 as uuidv4 } from 'uuid'; // To generate unique identifiers
 import ExcelJS from 'exceljs';
 import { serverBaseUrl } from '@/components/serverConfig';
+import axios from 'axios';
 
 
 export async function GET(request: NextRequest) {
@@ -134,7 +135,7 @@ export async function PUT(request: NextRequest) {
             rowToUpdate.getCell(10).value = userName;
         } else {
             // Insert new row if ID not found
-            const newRow = [date, category, name, quantity, price, paymentType, info,  , id, userName];
+            const newRow = [date, category, name, quantity, price, paymentType, info, , id, userName];
             rowToUpdate = worksheet.addRow(newRow);
         }
 
@@ -158,7 +159,7 @@ export async function PUT(request: NextRequest) {
 
             console.log(`Updated image for date: ${date}`);
         } else {
-            console.error('Image is not a valid base64-encoded string.');
+            console.error('Image is not included (Backend).');
         }
 
         // Get all products for the same date
@@ -182,8 +183,8 @@ export async function PUT(request: NextRequest) {
             throw new Error('Worksheet 1 not found');
         }
 
-        // Define the mapping of categories to their corresponding index in the first worksheet
-        const categoryColumnMap: { [key: string]: string } = {
+        // console.log("Columns Config");
+        let columns = {
             'SÜT': 'C',
             'ET-DANA': 'D',
             'ET-KUZU': 'E',
@@ -199,6 +200,19 @@ export async function PUT(request: NextRequest) {
             'MAZOT': 'O',
             'EKSTRA ELEMAN': 'P',
         };
+        try {
+            const res = await axios.get(`${serverBaseUrl}/api/columns?page=Products`)
+            console.log(res.data);
+            columns = res.data.columns;
+        } catch (error) {
+            console.log('Error getting the products columns', error);
+        }
+
+        // Define the mapping of categories to their corresponding index in the first worksheet
+        const categoryColumnMap: { [key: string]: string } = columns;
+
+        console.log(categoryColumnMap);
+        
 
         // Sum products by category and payment type
         const summedProducts: { [key: string]: { nakit: number, other: number } } = {};
@@ -288,7 +302,7 @@ export async function DELETE(request: NextRequest) {
                     price: parseFloat(row.getCell(5).value?.toString() || '0'),
                     paymentType: row.getCell(6).value?.toString(),
                     image: row.getCell(8).value
-                    
+
                 };
                 rowToDelete = rowNumber;
             }

@@ -98,7 +98,6 @@ export default function ProductPage() {
     try {
       const response = await axios.get(`/api/products?date=${today.split(' ')[0]}`);
       if (response.status === 200) {
-        console.log('Today\'s products:', response.data.products);
 
         const productsWithIds = response.data.products.map((product: any) => ({
           id: product.ID,

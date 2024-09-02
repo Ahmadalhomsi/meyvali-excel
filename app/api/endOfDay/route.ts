@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
 
 import ExcelJS from 'exceljs';
 import { serverBaseUrl } from '@/components/serverConfig';
+import axios from 'axios';
 
 
 export async function PUT(request: NextRequest) {
@@ -198,14 +199,25 @@ export async function PUT(request: NextRequest) {
             throw new Error('Worksheet 1 not found');
         }
 
-        // Define the mapping of categories to their corresponding column in the first worksheet
-        const paymentTypeColumnMap: { [key: string]: string } = {
+
+        // console.log("Columns Config");
+        let columns = {
             'Kalan': 'R',
             'Kredi Kartı': 'S',
         };
+        try {
+            const res = await axios.get(`${serverBaseUrl}/api/columns?page=EndOfDay`);
+            console.log(res.data);
+            columns = res.data.columns;
+        } catch (error) {
+            console.log('Error getting the EndOfDay columns', error);
+        }
+
+        // Define the mapping of categories to their corresponding column in the first worksheet
+        const paymentTypeColumnMap: { [key: string]: string } = columns
 
         // Find the correct row for the date and update 'Kalan' and 'Kredi Kartı' values
-        const targetRow = findRowForDate(worksheet1, date, 2);
+        const targetRow = findRowForDate(worksheet1, dateOnly, 2);
 
         Object.entries(paymentTypeColumnMap).forEach(([key, columnLetter]) => {
             const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
@@ -225,28 +237,18 @@ export async function PUT(request: NextRequest) {
 
 
 // Function to find the correct row for the given date, starting from a specific row
-function findRowForDate(worksheet: any, date: string, startRow: number): number {
+function findRowForDate(worksheet: ExcelJS.Worksheet, date: string, startRow: number): number {
     let rowIndex = startRow;
     while (rowIndex <= worksheet.rowCount) {
         const cellValue = worksheet.getCell(`A${rowIndex}`).value;
         if (cellValue === null || cellValue === undefined || cellValue === '') {
-            worksheet.getCell(`A${rowIndex}`).value = date; // Add the date to the first empty row
+            worksheet.getCell(`A${rowIndex}`).value = date;
             return rowIndex;
-        }
-        if (cellValue === date) {
-            return rowIndex; // Return the row if the date matches
-        }
-        if (cellValue > date) {
-            // Insert a new row and add the date
-            worksheet.insertRow(rowIndex, [date]);
+        } else if (cellValue === date) {
             return rowIndex;
         }
         rowIndex++;
     }
-    // If we've reached here, add a new row at the end
-    worksheet.addRow([date]);
-    return worksheet.rowCount;
+    worksheet.getCell(`A${rowIndex}`).value = date; // Set the date in the next available row
+    return rowIndex;
 }
-
-
-// Post endpoint to type the data on the excel file that located in the public folder

@@ -1,9 +1,4 @@
 {
-  "Payments": {
-    "Eski Bakiye": "X",
-    "Veresiye": "AA",
-    "Havale": "W"
-  },
   "Products": {
     "SÜT": "C",
     "ET-DANA": "D",
@@ -19,6 +14,11 @@
     "TÜP": "N",
     "MAZOT": "O",
     "EKSTRA ELEMAN": "P"
+  },
+  "Payments": {
+    "Eski Bakiye": "X",
+    "Veresiye": "AA",
+    "Havale": "W"
   },
   "EndOfDay": {
     "Kredi Kartı": "S",

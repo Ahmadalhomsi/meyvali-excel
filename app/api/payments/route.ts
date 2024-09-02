@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
 
 import ExcelJS from 'exceljs';
 import { serverBaseUrl } from '@/components/serverConfig';
+import axios from 'axios';
 
 
 export async function PUT(request: NextRequest) {
@@ -209,14 +210,22 @@ export async function PUT(request: NextRequest) {
             throw new Error('Worksheet 1 not found');
         }
 
-        // Define the mapping of payment types to their corresponding column in the first worksheet
-        const paymentTypeColumnMap: { [key: string]: string } = {
+        // console.log("Columns Config");
+        let columns = {
             'Havale': 'W',
             'Eski Bakiye': 'X',
             'Veresiye': 'AA',
         };
+        try {
+            const res = await axios.get(`${serverBaseUrl}/api/columns?page=Payments`)
+            console.log(res.data);
+            columns = res.data.columns;
+        } catch (error) {
+            console.log('Error getting the payments columns', error);
+        }
 
-        console.log('Payment type column map:', paymentTypeColumnMap);
+        // Define the mapping of payment types to their corresponding column in the first worksheet
+        const paymentTypeColumnMap: { [key: string]: string } = columns
 
         // Write the sums to the corresponding columns in the first worksheet
         for (const [type, sum] of Object.entries(paymentSums)) {
