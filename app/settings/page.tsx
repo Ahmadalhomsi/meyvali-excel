@@ -18,6 +18,9 @@ import {
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import CategoriesManagement from './CategoriesManagement';
+import ColumnsManagement from './ColumnsManagement';
+
+
 
 
 const FileManagementPage = () => {
@@ -174,6 +177,10 @@ const FileManagementPage = () => {
 
                 <Grid item xs={12}>
                     <CategoriesManagement />
+                </Grid>
+
+                <Grid item xs={12}>
+                    <ColumnsManagement />
                 </Grid>
 
                 <Grid item xs={12}>

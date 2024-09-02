@@ -1,0 +1,23 @@
+{
+  "Payments": {
+    "Eski Bakiye": "X",
+    "Veresiye": "AA",
+    "Havale": "W"
+  },
+  "Products": {
+    "SÜT": "C",
+    "ET-DANA": "D",
+    "ET-KUZU": "E",
+    "BEYAZ-ET": "F",
+    "EKMEK": "G",
+    "MARKET PAZAR RAMİ": "H",
+    "PAÇA": "I",
+    "İŞKEMBE": "J",
+    "AMBALAJ MALZEMESİ": "K",
+    "SU-ŞİŞE": "L",
+    "MEŞRUBAT": "M",
+    "TÜP": "N",
+    "MAZOT": "O",
+    "EKSTRA ELEMAN": "P"
+  }
+}
