@@ -78,7 +78,7 @@ export default function Payment_Calculation() {
       const response = await axios.get(`/api/payments?date=${today.split(' ')[0]}`);
       if (response.status === 200) {
         console.log(response.data.payments);
-                const paymentsWithIds = response.data.payments.map((payment: any) => ({
+        const paymentsWithIds = response.data.payments.map((payment: any) => ({
           id: payment.ID,  // or however the ID should be generated
           date: payment['Tarih'],
           price: parseFloat(payment['Fiyat']),
@@ -303,7 +303,11 @@ export default function Payment_Calculation() {
   const columns: GridColDef[] = [
     // { field: 'id', headerName: 'ID', width: 2 },
     { field: 'date', headerName: 'Tarih', width: 100 },
-    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number' },
+    {
+      field: 'price', headerName: 'Fiyat', width: 80, type: 'number', renderCell: (params) => {
+        return formatPrice(params.value);
+      }
+    },
     { field: 'billNo', headerName: 'Adisyon No', width: 180 },
     { field: 'name', headerName: 'Adisyon Adı', width: 180 },
     { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },

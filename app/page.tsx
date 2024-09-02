@@ -331,7 +331,11 @@ export default function ProductPage() {
     { field: 'category', headerName: 'Katagori', width: 150 },
     { field: 'name', headerName: 'Ürün Adı', width: 180 },
     { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number' },
-    { field: 'price', headerName: 'Fiyat', width: 80, type: 'number' },
+    {
+      field: 'price', headerName: 'Fiyat', width: 80, type: 'number', renderCell: (params) => {
+        return formatPrice(params.value);
+      }
+    },
     { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
     { field: 'info', headerName: 'Ek Bilgi', width: 220 },
     {
@@ -494,7 +498,7 @@ export default function ProductPage() {
             />
           </Grid>
 
-          <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", flexDirection: "row", alignItems: "center"}}>
+          <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <input
                 accept="image/*"
@@ -504,7 +508,7 @@ export default function ProductPage() {
                 onChange={handleImageSelect}
               />
               <label htmlFor="raised-button-file">
-                <Button variant="contained" component="span"  startIcon={<AddAPhoto />}>
+                <Button variant="contained" component="span" startIcon={<AddAPhoto />}>
                   {currentProduct.image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
                 </Button>
               </label>
