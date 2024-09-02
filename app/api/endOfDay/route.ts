@@ -84,7 +84,7 @@ import axios from 'axios';
 
 export async function PUT(request: NextRequest) {
     try {
-        const { date, totalCash, imageBuffer } = await request.json();
+        const { date, totalCash, imageBuffer, userName } = await request.json();
 
         const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
@@ -149,7 +149,8 @@ export async function PUT(request: NextRequest) {
             totalCash.TRQcode,
             totalCash.eBill,
             totalCash.info,
-            '' // Placeholder for image link
+            "",
+            userName
         ];
         worksheet.addRow(newRow);
 

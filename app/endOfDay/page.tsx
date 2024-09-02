@@ -24,6 +24,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { useUser } from '@clerk/nextjs';
 
 interface TotalCash {
     remaining: string;
@@ -117,6 +118,8 @@ export default function End_Of_Day() {
         }
     };
 
+    const { user } = useUser();
+
     const uploadTotalCash = async () => {
         if (!image) {
             toast('Fotoğraf Eklenmedi', {
@@ -137,10 +140,16 @@ export default function End_Of_Day() {
         };
 
         try {
+
+            const userName = user?.username || user?.fullName || user?.emailAddresses[0].emailAddress;
+
+            console.log('User name:', userName);
+
             const response = await axios.put('/api/endOfDay', {
                 totalCash: processedTotalCash,
                 imageBuffer: image,
-                date: dayjs().format('DD.MM.YYYY HH:mm')
+                date: dayjs().format('DD.MM.YYYY HH:mm'),
+                userName
             });
             if (response.status === 200) {
                 toast.success('Toplam nakit bilgisi başarıyla güncellendi!');
