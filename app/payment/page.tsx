@@ -77,21 +77,18 @@ export default function Payment_Calculation() {
     try {
       const response = await axios.get(`/api/payments?date=${today.split(' ')[0]}`);
       if (response.status === 200) {
-        const productsWithIds = response.data.payments.map((product: any) => ({
-          id: product.ID,  // or however the ID should be generated
-          date: product['Tarih'],
-          price: parseFloat(product['Fiyat']),
-          name: product['Adisyon No'],
-          billNo: product['Adisyon Adı'],
-          paymentType: product['Ödeme Türü'],
-          info: product['Ek Bilgi'],
-          image: product['Fotoğraf']?.hyperlink,
+        console.log(response.data.payments);
+                const paymentsWithIds = response.data.payments.map((payment: any) => ({
+          id: payment.ID,  // or however the ID should be generated
+          date: payment['Tarih'],
+          price: parseFloat(payment['Fiyat']),
+          name: payment['Adisyon No'],
+          billNo: payment['Adisyon Adı'],
+          paymentType: payment['Ödeme Türü'],
+          info: payment['Ek Bilgi'],
+          image: payment['Fotoğraf']?.hyperlink,
         }));
-        setPayments(productsWithIds);
-
-        // Update the productIdCounter to avoid ID conflicts
-        // const maxId = Math.max(...productsWithIds.map((product: { id: any; }) => product.id), 0);
-        // setProductIdCounter(maxId + 1);
+        setPayments(paymentsWithIds);
       }
     } catch (error) {
       console.error('Error fetching today\'s products:', error);

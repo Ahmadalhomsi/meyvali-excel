@@ -58,16 +58,14 @@ import { serverBaseUrl } from '@/components/serverConfig';
 export async function PUT(request: NextRequest) {
     try {
         const data = await request.json();
-        const { id, date, price, billNo, name, paymentType, info, image, userName } = data;
+        const { id, date, billNo, name, paymentType, info, image, userName } = data;
+        const price = parseFloat(data.price);
 
-        console.log('PUT request received with the following data:', data);
-        
 
         const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
         const uploadsDir = path.join(publicDir, 'uploads');
         const filePath = path.join(publicDir, fileName);
-
 
         const dateOnly = date.split(' ')[0]; // Output: "DD.MM.YYYY"
 
@@ -89,68 +87,54 @@ export async function PUT(request: NextRequest) {
 
         // If the worksheet is empty, add the template headers and set column widths
         if (worksheet.actualRowCount === 0) {
-            const headers = ['Tarih', 'Fiyat', 'Adisyon No', 'Adisyon Adı', 'Ödeme Türü', 'Ek Bilgi', 'Fotoğraf'];
+            const headers = ['Tarih', 'Fiyat', 'Adisyon No', 'Adisyon Adı', 'Ödeme Türü', 'Ek Bilgi', 'Fotoğraf', 'ID', 'Kullanıcı'];
             worksheet.addRow(headers);
 
             // Adjust column widths
             worksheet.columns = [
+
                 { width: 15 }, // Tarih
-                { width: 8 }, // Fiyat
+                { width: 8 },  // Fiyat
                 { width: 16 }, // Adisyon No
                 { width: 12 }, // Adisyon Adı
                 { width: 15 }, // Ödeme Türü
                 { width: 25 }, // Ek Bilgi
                 { width: 15 }, // Fotoğraf
+                { width: 5 }, // ID
+                { width: 20 }, // Kullanıcı Adı
             ];
         }
 
-        // Find and remove all rows with the given date in the first column
-        let rowToDelete = 1;
-        while (rowToDelete <= worksheet.rowCount) {
-            const cell = worksheet.getCell(`A${rowToDelete}`);
-            if (cell.value === date) {
-                worksheet.spliceRows(rowToDelete, 1);
-            } else {
-                rowToDelete++;
+        // Find the row with the given ID or add a new row
+        let rowToUpdate: ExcelJS.Row | undefined;
+        worksheet.eachRow((row, rowNumber) => {
+            if (row.getCell(9).value === id) {
+                rowToUpdate = row;
             }
+        });
+
+        if (rowToUpdate) {
+            // Update existing row
+            rowToUpdate.getCell(1).value = date;
+            rowToUpdate.getCell(2).value = price;
+            rowToUpdate.getCell(3).value = billNo;
+            rowToUpdate.getCell(4).value = name;
+            rowToUpdate.getCell(5).value = paymentType;
+            rowToUpdate.getCell(6).value = info;
+            rowToUpdate.getCell(9).value = userName;
+
+        } else {
+            // Insert new row if ID not found
+            const newRow = [date, price, billNo, name, paymentType, info, '', id, userName];
+            rowToUpdate = worksheet.addRow(newRow);
         }
 
-        // Determine the index to start adding new rows
-        const startRow = worksheet.actualRowCount + 1;
-
-        // // Add the new products starting from the correct row
-        // payments.forEach((product: any, index: number) => {
-        //     const productRow = Array.isArray(product) ? product : Object.values(product);
-        //     worksheet.insertRow(startRow + index, productRow);
-        // });
-
-        const firstProductRowIndex = startRow;
-
-        // Handle image replacement logic
-        const imageCell = worksheet.getCell(`H${firstProductRowIndex}`); // Changed to column H for Fotoğraf
-        let oldImageUrl: string | undefined;
-
-        if (imageCell.value && typeof imageCell.value === 'object' && 'hyperlink' in imageCell.value) {
-            oldImageUrl = (imageCell.value as ExcelJS.CellHyperlinkValue).hyperlink;
-        }
-
-        if (image) {
-
-            // Generate a filename based on the date
-            const dateFormatted = dateOnly.replace(/\./g, '-'); // Convert '25.08.2024' to '25-08-2024'
-            const imageFileName = `${dateFormatted}-Odeme.png`;
+        // Handle image update
+        if (image && typeof image === 'string' && image.startsWith('data:image/png;base64,')) {
+            const uniqueId = id;
+            const dateFormatted = dateOnly.replace(/\./g, '-');
+            const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
-
-            // Check if an old image exists and delete it
-            try {
-                await fs.access(imageFilePath);
-                await fs.unlink(imageFilePath);
-                console.log(`Deleted existing image for date: ${date}`);
-            } catch (err: any) {
-                if (err.code !== 'ENOENT') {
-                    console.warn(`Error checking/deleting existing image: ${err.message}`);
-                }
-            }
 
             // Save the new image
             const buffer = Buffer.from(image.split(',')[1], 'base64');
@@ -159,77 +143,144 @@ export async function PUT(request: NextRequest) {
             const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
             // Update the Excel file with the new image link
+            const imageCell = rowToUpdate.getCell(8);
             imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
             imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
 
             console.log(`Updated image for date: ${date}`);
+        } else {
+            console.error('Image is not a valid base64-encoded string.');
         }
 
-        // ------ ------- Now move to the first worksheet
+        // Insert new row if ID not found
+        let newPayment: { price: number, paymentType: string } | undefined;
+        if (!rowToUpdate) {
+            const newRow = [date, price, billNo, name, paymentType, info, '', id, userName];
+            rowToUpdate = worksheet.addRow(newRow);
+            newPayment = { price, paymentType }; // Store the new payment details
+        }
 
+        // Get all payments for the same date, including the new payment
+        const allPayments: { price: number, paymentType: string }[] = [];
+
+        if (newPayment) {
+            allPayments.push(newPayment); // Add the new payment to the array
+        }
+
+        worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber > 1) { // Skip header row
+                const rowDate = row.getCell(1).value?.toString().split(' ')[0];
+                if (rowDate === dateOnly) {
+                    allPayments.push({
+                        price: parseFloat(row.getCell(2).value?.toString() || '0'),
+                        paymentType: row.getCell(5).value?.toString() || '',
+                    });
+                }
+            }
+        });
+
+        // Calculate the sum of payments by paymentType
+        const paymentSums: { [key: string]: number } = {};
+        allPayments.forEach(payment => {
+            if (payment.paymentType in paymentSums) {
+                paymentSums[payment.paymentType] += payment.price;
+            } else {
+                paymentSums[payment.paymentType] = payment.price;
+            }
+        });
+
+        console.log('All payments:', allPayments);
+        console.log('Payment sums:', paymentSums);
+
+        // Now move to the first worksheet
         const worksheet1 = workbook.getWorksheet(1);
         if (!worksheet1) {
             throw new Error('Worksheet 1 not found');
         }
 
-        // Define the mapping of categories to their corresponding index in the first worksheet
+        // Define the mapping of payment types to their corresponding column in the first worksheet
         const paymentTypeColumnMap: { [key: string]: string } = {
             'Havale': 'W',
             'Eski Bakiye': 'X',
             'Veresiye': 'AA',
         };
 
+        console.log('Payment type column map:', paymentTypeColumnMap);
 
+        // Write the sums to the corresponding columns in the first worksheet
+        for (const [type, sum] of Object.entries(paymentSums)) {
+            console.log(`Processing payment type: ${type}, sum: ${sum}`);
+            const columnLetter = paymentTypeColumnMap[type];
+            console.log(`Column letter for ${type}: ${columnLetter}`);
 
-        // // Loop through the products and update the first worksheet
-        // payments.forEach((product: any) => {
-        //     const { 'Fiyat': price, 'Ödeme Türü': paymentType } = product;
+            if (columnLetter) {
+                console.log(`Updating column ${columnLetter} with sum ${sum} for payment type ${type} on date ${dateOnly}`);
 
-        //     const columnLetter = paymentTypeColumnMap[paymentType];
+                const targetRow = findRowForDate(worksheet1, dateOnly);
+                console.log(`Target row for date ${dateOnly}: ${targetRow}`);
 
-        //     if (columnLetter) {
-        //         let targetRow: number;
-        //         targetRow = findRowForDate(worksheet1, date, 2); // Start from row 2 for 'Nakit'
-        //         const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-        //         const currentValue = targetCell.value || 0;
-        //         targetCell.value = (currentValue as number) + price;
-        //     }
-        // });
+                if (targetRow) {
+                    const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
+                    // const currentValue = targetCell.value ? Number(targetCell.value) : 0;
+                    targetCell.value = sum;
+                    console.log(`Updated cell ${columnLetter}${targetRow} with value ${sum}`);
+                } else {
+                    console.log(`No matching row found for date ${dateOnly}`);
+                }
+            } else {
+                console.warn(`No column mapping found for payment type: ${type}. Skipping this payment type.`);
+            }
+        }
 
         // Save the updated workbook back to the file
         await workbook.xlsx.writeFile(filePath);
 
-        return NextResponse.json({ message: 'Products and image link successfully updated' }, { status: 200 });
+        return NextResponse.json({ message: 'Payment and image link successfully updated' }, { status: 200 });
     } catch (error) {
-        console.log('Error in PUT function:', error);
+        console.error('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }
 
-
 // Function to find the correct row for the given date, starting from a specific row
-function findRowForDate(worksheet: any, date: string, startRow: number): number {
+function findRowForDate(worksheet: ExcelJS.Worksheet, date: string, startRow: number = 2): number {
     let rowIndex = startRow;
     while (rowIndex <= worksheet.rowCount) {
         const cellValue = worksheet.getCell(`A${rowIndex}`).value;
         if (cellValue === null || cellValue === undefined || cellValue === '') {
-            worksheet.getCell(`A${rowIndex}`).value = date; // Add the date to the first empty row
+            worksheet.getCell(`A${rowIndex}`).value = date;
             return rowIndex;
-        }
-        if (cellValue === date) {
-            return rowIndex; // Return the row if the date matches
-        }
-        if (cellValue > date) {
-            // Insert a new row and add the date
-            worksheet.insertRow(rowIndex, [date]);
+        } else if (cellValue === date) {
             return rowIndex;
         }
         rowIndex++;
     }
-    // If we've reached here, add a new row at the end
-    worksheet.addRow([date]);
-    return worksheet.rowCount;
+    worksheet.getCell(`A${rowIndex}`).value = date; // Set the date in the next available row
+    return rowIndex;
 }
 
 
-// Post endpoint to type the data on the excel file that located in the public folder
+// // Updated function to find the correct row for the given date
+// function findRowForDate(worksheet: ExcelJS.Worksheet, date: string): number | null {
+//     const dateToFind = date.split(' ')[0]; // Ensure only the date part is used
+//     console.log(`Searching for date: ${dateToFind}`);
+
+//     for (let rowIndex = 2; rowIndex <= worksheet.actualRowCount; rowIndex++) {
+//         const cellValue = worksheet.getCell(`A${rowIndex}`).value;
+//         console.log(`Row ${rowIndex}: ${cellValue}`);
+//         if (cellValue === null || cellValue === undefined || cellValue === '') {
+//             worksheet.getCell(`A${rowIndex}`).value = date;
+//             return rowIndex;
+
+//         } else if(cellValue && cellValue.toString().split(' ')[0] === dateToFind) {
+//             console.log(`Found matching date at row ${rowIndex}`);
+//             return rowIndex;
+//         }
+//     }
+
+//     // If the date is not found, find the next empty row
+//     const nextEmptyRow = worksheet.actualRowCount + 1;
+//     console.log(`Date not found. Adding new date at row ${nextEmptyRow}`);
+//     worksheet.getCell(`A${nextEmptyRow}`).value = dateToFind;
+//     return nextEmptyRow;
+// }

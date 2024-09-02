@@ -136,7 +136,7 @@ export async function PUT(request: NextRequest) {
             rowToUpdate.getCell(10).value = userName;
         } else {
             // Insert new row if ID not found
-            const newRow = [date, category, name, quantity, price, paymentType, info, , id, userName];
+            const newRow = [date, category, name, quantity, price, paymentType, info,  , id, userName];
             rowToUpdate = worksheet.addRow(newRow);
         }
 
@@ -290,6 +290,7 @@ export async function DELETE(request: NextRequest) {
                     price: parseFloat(row.getCell(5).value?.toString() || '0'),
                     paymentType: row.getCell(6).value?.toString(),
                     image: row.getCell(8).value
+                    
                 };
                 rowToDelete = rowNumber;
             }
