@@ -313,7 +313,7 @@ export async function DELETE(request: NextRequest) {
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.readFile(filePath);
 
-        let worksheet = workbook.getWorksheet(4 );
+        let worksheet = workbook.getWorksheet(4);
         let worksheet1 = workbook.getWorksheet(1);
 
         if (!worksheet || !worksheet1) {
@@ -367,19 +367,17 @@ export async function DELETE(request: NextRequest) {
             // If not imageOnly, delete the row from worksheet 3
             worksheet.spliceRows(rowToDelete, 1);
 
-            // Update the sum in worksheet 1
-            const categoryColumnMap: { [key: string]: string } = {
-                'SÜT': 'C', 'ET-DANA': 'D', 'ET-KUZU': 'E', 'BEYAZ-ET': 'F',
-                'EKMEK': 'G', 'MARKET PAZAR RAMİ': 'H', 'PAÇA': 'I', 'İŞKEMBE': 'J',
-                'AMBALAJ MALZEMESİ': 'K', 'SU-ŞİŞE': 'L', 'MEŞRUBAT': 'M', 'TÜP': 'N',
-                'MAZOT': 'O', 'EKSTRA ELEMAN': 'P'
+            // Define the mapping of payment types to their corresponding column in the first worksheet
+            const paymentTypeColumnMap: { [key: string]: string } = {
+                'Havale': 'W',
+                'Eski Bakiye': 'X',
+                'Veresiye': 'AA',
             };
 
-            const columnLetter = categoryColumnMap[deletedProduct.category];
+            const columnLetter = paymentTypeColumnMap[deletedProduct.paymentType];
             if (columnLetter) {
-                const rowIndex = deletedProduct.paymentType === 'Nakit'
-                    ? findRowForDate(worksheet1, deletedProduct.date, 2)
-                    : findRowForDate(worksheet1, deletedProduct.date, 34);
+                const rowIndex = findRowForDate(worksheet1, deletedProduct.date, 2)
+
 
                 const cell = worksheet1.getCell(`${columnLetter}${rowIndex}`);
                 const currentValue = parseFloat(cell.value?.toString() || '0');
