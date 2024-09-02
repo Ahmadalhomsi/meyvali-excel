@@ -131,7 +131,7 @@ export default function ProductPage() {
   const { user } = useUser();
 
   const updateProduct = async (product: Product) => {
-    console.log('Updating product:', product);
+    console.log('Updating productZZZS:', product);
 
     try {
 
@@ -157,8 +157,6 @@ export default function ProductPage() {
 
   const handleAddProduct = async () => {
     try {
-      console.log(editingId);
-
       let uniqueId
 
       if (editingId !== null) {
@@ -198,7 +196,13 @@ export default function ProductPage() {
         // Wait for the add operation to complete
         await updateProduct(newProduct);
 
-        newProduct.image = imageUrl;
+        if (typeof currentProduct.image === 'string') {
+          console.log("State1");
+          newProduct.image = imageUrl;
+        } else {
+          console.log("State2");
+        }
+
         // Only update state if the API call is successful
         setProducts([...products, newProduct]);
         toast.success('Ürün başarıyla eklendi!');
@@ -266,6 +270,7 @@ export default function ProductPage() {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
+
   const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -276,6 +281,7 @@ export default function ProductPage() {
         setCurrentProduct(updatedProduct);
       };
       reader.readAsDataURL(file);
+
     }
   };
 
@@ -344,8 +350,6 @@ export default function ProductPage() {
       width: 100,
       renderCell: (params) => {
         // Log the value to the console
-        console.log('Image URLZZZZ:', params.value);
-
         return params.value ? (
           <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: 0 }}>
             <img
