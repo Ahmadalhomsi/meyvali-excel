@@ -10,7 +10,7 @@ async function readColumnsFile() {
   try {
     const data = await fs.readFile(columnsFilePath, 'utf8');
     return JSON.parse(data);
-  } catch (error : any) {
+  } catch (error: any) {
     if (error.code === 'ENOENT') {
       // File doesn't exist, return an empty object
       return {};
@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Error fetching columns' }, { status: 500 });
   }
 }
+
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -75,10 +76,10 @@ export async function PUT(request: NextRequest) {
     if (!columns[page] || !columns[page][oldColumnName]) {
       return NextResponse.json({ error: 'Column not found' }, { status: 404 });
     }
-    
+
     delete columns[page][oldColumnName];
     columns[page][newColumnName] = newColumnLetter;
-    
+
     await writeColumnsFile(columns);
     return NextResponse.json({ message: 'Column updated successfully' });
   } catch (error) {

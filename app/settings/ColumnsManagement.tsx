@@ -112,9 +112,10 @@ const ColumnManagement = () => {
                 <InputLabel id="demo-simple-select-label">Sayfa</InputLabel>
                 <Select
                     value={selectedPage} onChange={handlePageChange} label="Sayfa">
-                        
+
                     <MenuItem value="Payments">Ödemeler</MenuItem>
                     <MenuItem value="Products">Ürünler</MenuItem>
+                    <MenuItem value="EndOfDay">Gün Sonu</MenuItem>
 
                 </Select>
             </FormControl>

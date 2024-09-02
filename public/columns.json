@@ -19,5 +19,9 @@
     "TÜP": "N",
     "MAZOT": "O",
     "EKSTRA ELEMAN": "P"
+  },
+  "EndOfDay": {
+    "Kredi Kartı": "S",
+    "Kalan": "R"
   }
 }
