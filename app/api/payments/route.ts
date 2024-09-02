@@ -4,9 +4,9 @@ import { promises as fs } from 'fs';
 
 export async function GET(request: NextRequest) {
     try {
-        // Get the date from the query parameter
         const searchParams = request.nextUrl.searchParams;
         const date = searchParams.get('date');
+        console.log('Received GET request with date:', date);
 
         if (!date) {
             return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
         const fileBuffer = await fs.readFile(filePath);
         await workbook.xlsx.load(fileBuffer);
 
-        // Get the third sheet (index 3)
+        // Get the third sheet (index 2)
         const worksheet = workbook.worksheets[3];
 
         // Convert the worksheet to JSON
@@ -35,18 +35,29 @@ export async function GET(request: NextRequest) {
                     const header = headerCell.value?.toString();
                     if (header) {
                         rowObject[header] = cell.value;
+
+                        // Check if this is the image column and extract the hyperlink
+                        if (header === 'Image' && cell.hyperlink) {
+                            rowObject['Image'] = cell.hyperlink;
+                        }
                     }
                 });
                 jsonData.push(rowObject);
             }
         });
 
-        // Filter the data based on the provided date
-        const filteredPayments = jsonData.filter((product: any) => product['Tarih'] === date);
+        console.log('Excel data:', jsonData);
 
-        return NextResponse.json({ payments: filteredPayments }, { status: 200 });
+
+        // Filter the data based on the provided date
+        const filteredPayment = jsonData.filter((payment: any) => payment['Tarih'].split(' ')[0] === date);
+
+        console.log('Filtered payment:', filteredPayment);
+
+
+        return NextResponse.json({ payments: filteredPayment }, { status: 200 });
     } catch (error: any) {
-        console.error('Error in GET function:', error);
+        console.log('Error in GET function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request', details: error.message }, { status: 500 });
     }
 }
@@ -284,3 +295,118 @@ function findRowForDate(worksheet: ExcelJS.Worksheet, date: string, startRow: nu
 //     worksheet.getCell(`A${nextEmptyRow}`).value = dateToFind;
 //     return nextEmptyRow;
 // }
+
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { id, imageOnly } = await request.json();
+
+        if (!id) {
+            return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
+        }
+
+        const fileName = 'meyvali-excel.xlsx';
+        const publicDir = path.join(process.cwd(), 'public');
+        const uploadsDir = path.join(publicDir, 'uploads');
+        const filePath = path.join(publicDir, fileName);
+
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+
+        let worksheet = workbook.getWorksheet(4 );
+        let worksheet1 = workbook.getWorksheet(1);
+
+        if (!worksheet || !worksheet1) {
+            return NextResponse.json({ error: 'Required worksheets not found' }, { status: 500 });
+        }
+
+        let deletedProduct: any = null;
+        let rowToDelete: number | null = null;
+
+        // Find the product to delete
+        worksheet.eachRow((row, rowNumber) => {
+            if (row.getCell(8).value === id) {
+                deletedProduct = {
+                    date: row.getCell(1).value?.toString().split(' ')[0],
+                    price: parseFloat(row.getCell(2).value?.toString() || '0'),
+                    billNo: row.getCell(3).value?.toString() || '',
+                    name: row.getCell(4).value?.toString() || '',
+                    paymentType: row.getCell(5).value?.toString() || '',
+                    info: row.getCell(6).value?.toString() || '',
+                    image: row.getCell(7).hyperlink,
+                    userName: row.getCell(9).value?.toString() || '',
+
+
+                };
+                rowToDelete = rowNumber;
+            }
+        });
+
+        if (!deletedProduct || rowToDelete === null) {
+            return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+        }
+
+        // If imageOnly is true, only remove the image and its link
+        if (imageOnly && typeof deletedProduct.image === 'object' && deletedProduct.image?.hyperlink) {
+            const imageUrl = deletedProduct.image.hyperlink;
+            const imagePath = imageUrl.replace(serverBaseUrl, '');
+            const fullImagePath = path.join(publicDir, imagePath);
+
+            try {
+                // Delete the image file
+                await fs.unlink(fullImagePath);
+                console.log(`Deleted image: ${fullImagePath}`);
+
+                // Clear the cell that contains the image hyperlink
+                worksheet.getCell(rowToDelete, 8).value = null;
+            } catch (error) {
+                console.log(`Failed to delete image: ${fullImagePath}`, error);
+                return NextResponse.json({ error: 'Failed to delete the image' }, { status: 500 });
+            }
+        } else {
+            // If not imageOnly, delete the row from worksheet 3
+            worksheet.spliceRows(rowToDelete, 1);
+
+            // Update the sum in worksheet 1
+            const categoryColumnMap: { [key: string]: string } = {
+                'SÜT': 'C', 'ET-DANA': 'D', 'ET-KUZU': 'E', 'BEYAZ-ET': 'F',
+                'EKMEK': 'G', 'MARKET PAZAR RAMİ': 'H', 'PAÇA': 'I', 'İŞKEMBE': 'J',
+                'AMBALAJ MALZEMESİ': 'K', 'SU-ŞİŞE': 'L', 'MEŞRUBAT': 'M', 'TÜP': 'N',
+                'MAZOT': 'O', 'EKSTRA ELEMAN': 'P'
+            };
+
+            const columnLetter = categoryColumnMap[deletedProduct.category];
+            if (columnLetter) {
+                const rowIndex = deletedProduct.paymentType === 'Nakit'
+                    ? findRowForDate(worksheet1, deletedProduct.date, 2)
+                    : findRowForDate(worksheet1, deletedProduct.date, 34);
+
+                const cell = worksheet1.getCell(`${columnLetter}${rowIndex}`);
+                const currentValue = parseFloat(cell.value?.toString() || '0');
+                cell.value = Math.max(0, currentValue - deletedProduct.price); // Ensure the value doesn't go below 0
+            }
+
+            // Also delete the associated photo if it exists
+            if (typeof deletedProduct.image === 'object' && deletedProduct.image?.hyperlink) {
+                const imageUrl = deletedProduct.image.hyperlink;
+                const imagePath = imageUrl.replace(serverBaseUrl, '');
+                const fullImagePath = path.join(publicDir, imagePath);
+
+                try {
+                    await fs.unlink(fullImagePath);
+                    console.log(`Deleted image: ${fullImagePath}`);
+                } catch (error) {
+                    console.log(`Failed to delete image: ${fullImagePath}`, error);
+                }
+            }
+        }
+
+        // Save the updated workbook
+        await workbook.xlsx.writeFile(filePath);
+
+        return NextResponse.json({ message: 'Product successfully deleted' }, { status: 200 });
+    } catch (error) {
+        console.log('Error in DELETE function:', error);
+        return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
+    }
+}
