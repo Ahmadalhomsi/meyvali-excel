@@ -68,8 +68,6 @@ export async function PUT(request: NextRequest) {
         const quantity = parseFloat(data.quantity);
         const price = parseFloat(data.price);
 
-        console.log('PUT request received with the following data:', data);
-
         console.log("UUSSSSER NAME", userName);
 
 

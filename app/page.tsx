@@ -131,7 +131,6 @@ export default function ProductPage() {
   const { user } = useUser();
 
   const updateProduct = async (product: Product) => {
-    console.log('Updating productZZZS:', product);
 
     try {
 
@@ -197,10 +196,10 @@ export default function ProductPage() {
         await updateProduct(newProduct);
 
         if (typeof currentProduct.image === 'string') {
-          console.log("State1");
+          console.log("Image Included");
           newProduct.image = imageUrl;
         } else {
-          console.log("State2");
+          console.log("Image Not Included");
         }
 
         // Only update state if the API call is successful
@@ -281,7 +280,6 @@ export default function ProductPage() {
         setCurrentProduct(updatedProduct);
       };
       reader.readAsDataURL(file);
-
     }
   };
 

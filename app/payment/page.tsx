@@ -108,7 +108,6 @@ export default function Payment_Calculation() {
   const { user } = useUser();
 
   const updatePayment = async (payment: Payment) => {
-    console.log('Updating payment:', payment);
 
     try {
 
@@ -175,7 +174,12 @@ export default function Payment_Calculation() {
 
         await updatePayment(newPayment);
 
-        newPayment.image = imageUrl;
+        if (typeof currentPayment.image === 'string') {
+          console.log("Image Included");
+          newPayment.image = imageUrl;
+        } else {
+          console.log("Image Not Included");
+        }
 
         setPayments([...payments, newPayment]);
         toast.success('Ödeme başarıyla eklendi!');
