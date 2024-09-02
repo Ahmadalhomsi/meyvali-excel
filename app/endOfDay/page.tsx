@@ -15,7 +15,7 @@ import {
     CircularProgress,
     Grid,
 } from '@mui/material';
-import { Edit, Delete } from '@mui/icons-material';
+import { Edit, Delete, AddAPhoto } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -231,26 +231,32 @@ export default function End_Of_Day() {
                         </div>
                     </Grid>
 
-                    <Box sx={{ display: "flex", alignItems: "center", marginTop: 2, marginLeft: 2 }}>
-                        <Button
-                            variant="contained"
-                            component="label"
-                            sx={{ marginRight: 2 }}
-                        >
-                            Fotoğraf Yükle
-                            <input type="file" hidden accept="image/*" onChange={handleImageUpload} />
-                        </Button>
+                    <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
+                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <input
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                id="raised-button-file"
+                                type="file"
+                                onChange={handleImageUpload}
+                            />
+                            <label htmlFor="raised-button-file">
+                                <Button variant="contained" component="span" startIcon={<AddAPhoto />}>
+                                    {image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
+                                </Button>
+                            </label>
+                        </Box>
 
                         {image && (
-                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", marginLeft: 1 }}>
                                 <img
                                     src={image}
-                                    alt="Uploaded"
-                                    style={{ maxWidth: 60, maxHeight: 60, marginRight: 10, borderRadius: 4 }}
+                                    alt="Product"
+                                    style={{ maxWidth: 60, maxHeight: 60, borderRadius: 4 }}
                                 />
                             </Box>
                         )}
-                    </Box>
+                    </Grid>
 
 
                     <Grid item xs={12} sm={6} md={3}>

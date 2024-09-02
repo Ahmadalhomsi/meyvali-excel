@@ -321,9 +321,7 @@ export default function Payment_Calculation() {
       headerName: 'Fotoğraf',
       width: 100,
       renderCell: (params) => {
-        // Log the value to the console
-        console.log('Image URLZZZZ:', params.value);
-
+        
         return params.value ? (
           <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: 0 }}>
             <img
