@@ -349,7 +349,7 @@ export default function ProductPage() {
     {
       field: 'image',
       headerName: 'Fotoğraf',
-      width: 100,
+      width: 110,
       renderCell: (params) => {
 
         return params.value ? (
@@ -367,7 +367,7 @@ export default function ProductPage() {
             />
           </a>
         ) : (
-          <Typography>No Image</Typography>
+          <Typography>Fotoğraf Yok</Typography>
         );
       },
     },

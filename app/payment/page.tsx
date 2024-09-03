@@ -324,9 +324,9 @@ export default function Payment_Calculation() {
     {
       field: 'image',
       headerName: 'Fotoğraf',
-      width: 100,
+      width: 110,
       renderCell: (params) => {
-        
+
         return params.value ? (
           <a href={params.value} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', padding: 0 }}>
             <img
@@ -342,7 +342,7 @@ export default function Payment_Calculation() {
             />
           </a>
         ) : (
-          <Typography>No Image</Typography>
+          <Typography>Fotoğraf Yok</Typography>
         );
       },
     },
