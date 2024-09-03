@@ -309,7 +309,7 @@ export default function Payment_Calculation() {
     { field: 'date', headerName: 'Tarih', width: 100 },
     {
       field: 'price', headerName: 'Fiyat', width: 80, type: 'number', renderCell: (params) => {
-        return formatPrice(params.value);
+        return formatPrice(params.value.toFixed(2));
       }
     },
     { field: 'billNo', headerName: 'Adisyon No', width: 180 },

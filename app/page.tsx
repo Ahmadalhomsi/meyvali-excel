@@ -336,7 +336,7 @@ export default function ProductPage() {
     { field: 'quantity', headerName: 'Adet/Kg', width: 80, type: 'number' },
     {
       field: 'price', headerName: 'Fiyat', width: 80, type: 'number', renderCell: (params) => {
-        return formatPrice(params.value);
+        return formatPrice(params.value.toFixed(2));
       }
     },
     { field: 'paymentType', headerName: 'Ödeme Türü', width: 100 },
