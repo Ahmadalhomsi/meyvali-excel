@@ -202,7 +202,7 @@ export async function PUT(request: NextRequest) {
         };
         try {
             const res = await axios.get(`${serverBaseUrl}/api/columns?page=Products`)
-            console.log(res.data);
+            // console.log(res.data);
             columns = res.data.columns;
         } catch (error) {
             console.log('Error getting the products columns', error);
@@ -212,7 +212,7 @@ export async function PUT(request: NextRequest) {
         const categoryColumnMap: { [key: string]: string } = columns;
 
         console.log(categoryColumnMap);
-        
+
 
         // Sum products by category and payment type
         const summedProducts: { [key: string]: { nakit: number, other: number } } = {};

@@ -243,7 +243,11 @@ export default function Payment_Calculation() {
   };
 
   const formatPrice = (price: any) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    // Ensure the price is a valid number and format it to two decimal places
+    const formattedPrice = parseFloat(price).toFixed(2);
+
+    // Add commas
+    return formattedPrice.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -310,7 +314,7 @@ export default function Payment_Calculation() {
     { field: 'date', headerName: 'Tarih', width: 100 },
     {
       field: 'price', headerName: 'Fiyat', width: 80, type: 'number', renderCell: (params) => {
-        return formatPrice(params.value.toFixed(2));
+        return formatPrice(params.value);
       }
     },
     { field: 'billNo', headerName: 'Adisyon No', width: 180 },

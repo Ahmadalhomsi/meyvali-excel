@@ -218,7 +218,7 @@ export async function PUT(request: NextRequest) {
         };
         try {
             const res = await axios.get(`${serverBaseUrl}/api/columns?page=Payments`)
-            console.log(res.data);
+            // console.log(res.data);
             columns = res.data.columns;
         } catch (error) {
             console.log('Error getting the payments columns', error);
