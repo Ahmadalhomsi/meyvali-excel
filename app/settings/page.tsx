@@ -35,8 +35,6 @@ const FileManagementPage = () => {
     const fetchImages = async () => {
         try {
             const response = await axios.get('/api/images');
-            console.log(response.data);
-
             setImages(response.data.images);
         } catch (error) {
             console.error('Error fetching images:', error);
@@ -111,6 +109,14 @@ const FileManagementPage = () => {
         );
     };
 
+    const handleSelectAll = (event: any) => {
+        if (event.target.checked) {
+            setSelectedImages(images);
+        } else {
+            setSelectedImages([]);
+        }
+    };
+
     const handleDeleteImages = async () => {
         if (selectedImages.length === 0) {
             toast.error('Lütfen silinecek resimleri seçin.');
@@ -163,7 +169,7 @@ const FileManagementPage = () => {
                             disabled={isReplacing}
                             sx={{ mb: 2 }}
                         >
-                            {isReplacing ? 'Değiştiriliyor...' : 'Değiştir'}
+                            {isReplacing ? 'DEĞİŞTİRİLİYOR...' : 'DEĞİŞTİR'}
                         </Button>
                         {(isDownloading || isReplacing) && (
                             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -184,11 +190,21 @@ const FileManagementPage = () => {
                 <Grid item xs={12}>
                     <Box sx={{ border: 1, borderColor: 'grey.300', p: 2, borderRadius: 1, mt: 2 }}>
                         <Typography variant="h6" gutterBottom>
-                            Resim İşlemleri
+                            RESİM İŞLEMLERİ
                         </Typography>
                         <Typography variant="body2" paragraph>
                             Resimlerin konumu: public\uploads\
                         </Typography>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={selectedImages.length === images.length}
+                                    onChange={handleSelectAll}
+                                    indeterminate={selectedImages.length > 0 && selectedImages.length < images.length}
+                                />
+                            }
+                            label="Tümü Seç"
+                        />
                         <ImageList sx={{ width: '100%', height: 450 }} cols={3} rowHeight={164}>
                             {images.map((image) => (
                                 <ImageListItem key={image}>
@@ -222,7 +238,7 @@ const FileManagementPage = () => {
                             disabled={isDeleting || selectedImages.length === 0}
                             sx={{ mt: 2 }}
                         >
-                            {isDeleting ? 'Siliniyor...' : `Seçilen Resimleri Sil (${selectedImages.length})`}
+                            {isDeleting ? 'SİLİNİYOR...' : `SEÇİLEN RESİMLERİ SİL (${selectedImages.length})`}
                         </Button>
                         {isDeleting && (
                             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>

@@ -480,7 +480,7 @@ export default function Payment_Calculation() {
               />
               <label htmlFor="raised-button-file">
                 <Button variant="contained" component="span" startIcon={<AddAPhoto />}>
-                  {currentPayment.image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
+                  {currentPayment.image ? 'FOTOĞRAFI DEĞİŞTİR' : 'Fotoğraf Ekle'}
                 </Button>
               </label>
             </Box>

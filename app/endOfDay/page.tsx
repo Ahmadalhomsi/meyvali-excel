@@ -251,7 +251,7 @@ export default function End_Of_Day() {
                             />
                             <label htmlFor="raised-button-file">
                                 <Button variant="contained" component="span" startIcon={<AddAPhoto />}>
-                                    {image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
+                                    {image ? 'FOTOĞRAFI DEĞİŞTİR' : 'Fotoğraf Ekle'}
                                 </Button>
                             </label>
                         </Box>

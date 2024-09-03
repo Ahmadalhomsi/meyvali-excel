@@ -523,7 +523,7 @@ export default function ProductPage() {
               />
               <label htmlFor="raised-button-file">
                 <Button variant="contained" component="span" startIcon={<AddAPhoto />}>
-                  {currentProduct.image ? 'Fotoğrafı Değiştir' : 'Fotoğraf Ekle'}
+                  {currentProduct.image ? 'FOTOĞRAFI DEĞİŞTİR' : 'Fotoğraf Ekle'}
                 </Button>
               </label>
             </Box>
