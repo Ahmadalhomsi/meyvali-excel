@@ -120,7 +120,7 @@ export async function PUT(request: NextRequest) {
         // Find the row with the given ID or add a new row
         let rowToUpdate: ExcelJS.Row | undefined;
         worksheet.eachRow((row, rowNumber) => {
-            if (row.getCell(9).value === id) {
+            if (row.getCell(8).value === id) {
                 rowToUpdate = row;
             }
         });
@@ -155,7 +155,7 @@ export async function PUT(request: NextRequest) {
             const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
             // Update the Excel file with the new image link
-            const imageCell = rowToUpdate.getCell(8);
+            const imageCell = rowToUpdate.getCell(7);
             imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
             imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
 
@@ -342,9 +342,7 @@ export async function DELETE(request: NextRequest) {
                     name: row.getCell(4).value?.toString() || '',
                     paymentType: row.getCell(5).value?.toString() || '',
                     info: row.getCell(6).value?.toString() || '',
-                    image: row.getCell(7).hyperlink,
-                    userName: row.getCell(9).value?.toString() || '',
-
+                    image: row.getCell(7).value,
 
                 };
                 rowToDelete = rowNumber;
@@ -367,7 +365,7 @@ export async function DELETE(request: NextRequest) {
                 console.log(`Deleted image: ${fullImagePath}`);
 
                 // Clear the cell that contains the image hyperlink
-                worksheet.getCell(rowToDelete, 8).value = null;
+                worksheet.getCell(rowToDelete, 7).value = null;
             } catch (error) {
                 console.log(`Failed to delete image: ${fullImagePath}`, error);
                 return NextResponse.json({ error: 'Failed to delete the image' }, { status: 500 });

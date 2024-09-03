@@ -82,8 +82,8 @@ export default function Payment_Calculation() {
           id: payment.ID,  // or however the ID should be generated
           date: payment['Tarih'],
           price: parseFloat(payment['Fiyat']),
-          name: payment['Adisyon No'],
-          billNo: payment['Adisyon Adı'],
+          name: payment['Adisyon Adı'],
+          billNo: payment['Adisyon No'],
           paymentType: payment['Ödeme Türü'],
           info: payment['Ek Bilgi'],
           image: payment['Fotoğraf']?.hyperlink,
@@ -132,10 +132,6 @@ export default function Payment_Calculation() {
   };
 
   const handleAddPayment = async () => {
-
-    console.log('Current payment:', currentPayment);
-
-
     try {
       let uniqueId
 
@@ -150,7 +146,19 @@ export default function Payment_Calculation() {
 
         // Append the timestamp only when editing the image
         const timestamp = new Date().getTime();
-        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
+        let imageUrl: any;
+
+
+        console.log("Current Payment Image:", editingId);
+        
+        if (typeof currentPayment.image === 'string') {
+          console.log("Image IncludedX");
+          imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
+          currentPayment.image = imageUrl;
+        } else {
+          console.log("Image Not IncludedX");
+          imageUrl = null;
+        }
 
         // Update the payment with the new image URL
         const updatedPayments = payments.map((payment) =>
@@ -164,7 +172,6 @@ export default function Payment_Calculation() {
         toast.success('Ödeme başarıyla güncellendi!');
         setIsLoading(false);
       } else {
-        // Format date and construct image URL outside the loop
         uniqueId = editingId || uuidv4();
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
         const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;

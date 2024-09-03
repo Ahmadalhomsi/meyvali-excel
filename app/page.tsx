@@ -169,9 +169,18 @@ export default function ProductPage() {
 
         // Append the timestamp only when editing the image
         const timestamp = new Date().getTime();
-        const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
+        let imageUrl : any;
 
-        // Update the product list with the new values
+     
+        if (typeof currentProduct.image === 'string') {
+          console.log("Image IncludedX");
+          imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
+          currentProduct.image = imageUrl;
+        } else {
+          console.log("Image Not IncludedX");
+          imageUrl = null;
+        }
+        
         const updatedProducts = products.map((product) =>
           product.id === editingId
             ? { ...currentProduct, image: imageUrl }
@@ -206,7 +215,6 @@ export default function ProductPage() {
         toast.success('Ürün başarıyla eklendi!');
       }
 
-      // Reset current product after successful operation
       setCurrentProduct({
         id: uniqueId,
         category: null,
