@@ -184,7 +184,7 @@ export default function ProductPage() {
         toast.success('Ürün başarıyla güncellendi!');
         setIsLoading(false);
       } else {
-        uniqueId = uuidv4();
+        uniqueId = editingId || uuidv4();
         const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
@@ -287,6 +287,7 @@ export default function ProductPage() {
   };
 
   const handleImageDelete = async () => {
+    setEditingId(null);
     if (!currentProduct.image) {
       toast.error('No image to delete.');
       return;
