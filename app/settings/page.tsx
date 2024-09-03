@@ -21,8 +21,6 @@ import CategoriesManagement from './CategoriesManagement';
 import ColumnsManagement from './ColumnsManagement';
 
 
-
-
 const FileManagementPage = () => {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isReplacing, setIsReplacing] = useState(false);

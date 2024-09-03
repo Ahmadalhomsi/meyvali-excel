@@ -46,13 +46,13 @@ export async function GET(request: NextRequest) {
             }
         });
 
-        console.log('Excel data:', jsonData);
+        // console.log('Excel data:', jsonData);
 
 
         // Filter the data based on the provided date
         const filteredPayment = jsonData.filter((payment: any) => payment['Tarih'].split(' ')[0] === date);
 
-        console.log('Filtered payment:', filteredPayment);
+        // console.log('Filtered payment:', filteredPayment);
 
 
         return NextResponse.json({ payments: filteredPayment }, { status: 200 });
