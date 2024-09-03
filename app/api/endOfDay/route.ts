@@ -106,10 +106,10 @@ export async function PUT(request: NextRequest) {
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.readFile(filePath);
 
-        let worksheet = workbook.getWorksheet(5);
+        let worksheet = workbook.getWorksheet(4);
 
         if (!worksheet) {
-            worksheet = workbook.addWorksheet('Sheet5');
+            worksheet = workbook.addWorksheet('Sheet4');
         }
 
         // If the worksheet is empty, add the template headers and set column widths

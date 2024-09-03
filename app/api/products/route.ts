@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
         const fileBuffer = await fs.readFile(filePath);
         await workbook.xlsx.load(fileBuffer);
 
-        // Get the third sheet (index 2)
-        const worksheet = workbook.worksheets[2];
+        // Get the third sheet (index 1)
+        const worksheet = workbook.worksheets[1];
 
         // Convert the worksheet to JSON
         const jsonData: any[] = [];
@@ -89,10 +89,10 @@ export async function PUT(request: NextRequest) {
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.readFile(filePath);
 
-        let worksheet = workbook.getWorksheet(3);
+        let worksheet = workbook.getWorksheet(2);
 
         if (!worksheet) {
-            worksheet = workbook.addWorksheet('Sheet3');
+            worksheet = workbook.addWorksheet('Sheet2');
         }
 
         // If the worksheet is empty, add the template headers and set column widths
@@ -283,7 +283,7 @@ export async function DELETE(request: NextRequest) {
         const workbook = new ExcelJS.Workbook();
         await workbook.xlsx.readFile(filePath);
 
-        let worksheet = workbook.getWorksheet(3);
+        let worksheet = workbook.getWorksheet(2);
         let worksheet1 = workbook.getWorksheet(1);
 
         if (!worksheet || !worksheet1) {
