@@ -31,6 +31,11 @@ export async function GET(request: NextRequest) {
         // Get the third sheet (index 1)
         const worksheet = workbook.worksheets[1];
 
+        
+        // workbook.eachSheet((worksheet, sheetId) => {
+        //     console.log(`Sheet ID: ${sheetId}, Name: ${worksheet.name}`);
+        // });
+
         // Convert the worksheet to JSON
         const jsonData: any[] = [];
         worksheet.eachRow((row, rowNumber) => {
