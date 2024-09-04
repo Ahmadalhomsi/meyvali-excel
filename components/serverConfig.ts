@@ -2,7 +2,7 @@ function getServerBaseUrl() {
     if (process.env.NODE_ENV === 'development') {
       return 'http://localhost:3000';
     } else {
-      return 'http://162.19.152.156:3000';
+      return 'http://37.148.211.114:3000';
     }
   }
   
