@@ -8,6 +8,8 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useState } from 'react';
 import { lightTheme, darkTheme } from '../styles/theme';
+import { trTR } from '@clerk/localizations'
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,7 +25,7 @@ export default function RootLayout({
   };
 
   return (
-    <ClerkProvider>
+    <ClerkProvider localization={trTR}>
       <html lang="en">
         <body className={inter.className}>
           <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
