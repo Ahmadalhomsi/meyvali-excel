@@ -160,7 +160,7 @@ const FileManagementPage = () => {
                             disabled={isDownloading}
                             sx={{ mr: 2, mb: 2 }}
                         >
-                            {isDownloading ? 'İndiriliyor...' : 'İndir'}
+                            {isDownloading ? 'İNDİRİLİYOR...' : 'İNDİR'}
                         </Button>
                         <Button
                             variant="contained"

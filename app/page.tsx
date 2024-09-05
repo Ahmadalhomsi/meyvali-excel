@@ -92,8 +92,8 @@ export default function ProductPage() {
     }
   };
 
-  const fetchTodayProducts = async () => {
-    const today = dayjs().format('DD.MM.YYYY HH:mm');
+  const fetchTodayProducts = async (date?: any) => {
+    const today = date || dayjs().format('DD.MM.YYYY HH:mm');
     setIsLoading(true);
     try {
       const response = await axios.get(`/api/products?date=${today.split(' ')[0]}`);
@@ -121,8 +121,14 @@ export default function ProductPage() {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+    if (useToday) {
+      currentProduct.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+    }
+
     setCurrentProduct({
       ...currentProduct,
+      date: currentProduct.date,
       [e.target.name]: e.target.value,
     });
   };
@@ -130,6 +136,10 @@ export default function ProductPage() {
   const { user } = useUser();
 
   const updateProduct = async (product: Product) => {
+
+    if (useToday) {
+      currentProduct.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+    }
 
     try {
 
@@ -145,6 +155,7 @@ export default function ProductPage() {
       // Pass the userName along with the product data to the backend
       await axios.put(`/api/products/`, {
         ...product,
+        date: currentProduct.date,
         userName, // Include the userName in the request body
       });
     } catch (error) {
@@ -161,7 +172,7 @@ export default function ProductPage() {
         setIsLoading(true);
         // Format date and construct image URL outside the loop
         uniqueId = editingId;
-        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        const dateFormatted = currentProduct.date.split(' ')[0].split('.').join('-');
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
 
         // Wait for the update to complete before proceeding
@@ -171,7 +182,7 @@ export default function ProductPage() {
         const timestamp = new Date().getTime();
         let imageUrl : any;
 
-     
+
         if (typeof currentProduct.image === 'string') {
           console.log("Image IncludedX");
           imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
@@ -180,7 +191,7 @@ export default function ProductPage() {
           console.log("Image Not IncludedX");
           imageUrl = null;
         }
-        
+
         const updatedProducts = products.map((product) =>
           product.id === editingId
             ? { ...currentProduct, image: imageUrl }
@@ -194,9 +205,13 @@ export default function ProductPage() {
         setIsLoading(false);
       } else {
         uniqueId = editingId || uuidv4();
-        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        let dateFormatted = currentProduct.date.split(' ')[0].split('.').join('-');
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
+
+        if(useToday){
+          currentProduct.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+        }
 
         const newProduct = { ...currentProduct, id: uniqueId };
 
@@ -215,6 +230,8 @@ export default function ProductPage() {
         toast.success('Ürün başarıyla eklendi!');
       }
 
+      console.log("Date", currentProduct.date);
+
       setCurrentProduct({
         id: uniqueId,
         category: null,
@@ -223,7 +240,7 @@ export default function ProductPage() {
         price: 0,
         paymentType: null,
         info: '',
-        date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'),
+        date: currentProduct.date,
         image: null,
       });
     } catch (error) {
@@ -256,16 +273,28 @@ export default function ProductPage() {
     setUseToday(!useToday);
     if (!useToday) {
       setCurrentProduct({ ...currentProduct, date: dayjs().locale('tr').format('DD.MM.YYYY') });
+      handleDateChange(dayjs().locale('tr'));
     }
   };
 
   const handleDateChange = (newValue: dayjs.Dayjs | null) => {
-    const newDate = newValue ? newValue.format('DD.MM.YYYY') : '';
+    let newDate
+    if (useToday) {
+      newDate = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+      currentProduct.date = newDate;
+    }
+    else {
+      newDate = newValue ? newValue.format('DD.MM.YYYY') : '';
+      currentProduct.date = newDate;
+    }
+
+
     const updatedProduct = {
       ...currentProduct,
       date: newDate,
     };
     setCurrentProduct(updatedProduct);
+    fetchTodayProducts(newDate);
   };
 
   const calculateTotalPrice = () => {
@@ -491,7 +520,7 @@ export default function ProductPage() {
                 label="Tarih"
                 views={['year', 'month', 'day',]}
                 defaultValue={dayjs().locale('tr')}
-                value={dayjs(currentProduct.date, 'DD.MM.YYYY HH:mm')}
+                value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
                 onChange={handleDateChange}
                 disabled={useToday}
                 sx={{ width: '55%' }}

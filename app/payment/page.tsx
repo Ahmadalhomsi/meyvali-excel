@@ -68,11 +68,11 @@ export default function Payment_Calculation() {
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
 
   useEffect(() => {
-    fetchTodayProducts();
+    fetchTodayPayments();
   }, []);
 
-  const fetchTodayProducts = async () => {
-    const today = dayjs().format('DD.MM.YYYY HH:mm');
+  const fetchTodayPayments = async (date?: any) => {
+    const today = date || dayjs().format('DD.MM.YYYY HH:mm');
     setIsLoading(true);
     try {
       const response = await axios.get(`/api/payments?date=${today.split(' ')[0]}`);
@@ -99,8 +99,15 @@ export default function Payment_Calculation() {
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+    if (useToday) {
+      currentPayment.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+    }
+
+
     setCurrentPayment({
       ...currentPayment,
+      date: currentPayment.date,
       [e.target.name]: e.target.value,
     });
   };
@@ -108,6 +115,9 @@ export default function Payment_Calculation() {
   const { user } = useUser();
 
   const updatePayment = async (payment: Payment) => {
+    if (useToday) {
+      currentPayment.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+    }
 
     try {
 
@@ -123,6 +133,7 @@ export default function Payment_Calculation() {
       // Pass the userName along with the product data to the backend
       await axios.put(`/api/payments/`, {
         ...payment,
+        date: currentPayment.date,
         userName, // Include the userName in the request body
       });
     } catch (error) {
@@ -139,7 +150,7 @@ export default function Payment_Calculation() {
         setIsLoading(true);
         // Format date and construct image URL outside the loop
         uniqueId = editingId;
-        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        const dateFormatted = currentPayment.date.split(' ')[0].split('.').join('-');
         const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;
 
         await updatePayment(currentPayment);
@@ -150,7 +161,7 @@ export default function Payment_Calculation() {
 
 
         console.log("Current Payment Image:", editingId);
-        
+
         if (typeof currentPayment.image === 'string') {
           console.log("Image IncludedX");
           imageUrl = `${serverBaseUrl}/uploads/${imageFileName}?t=${timestamp}`;
@@ -173,9 +184,13 @@ export default function Payment_Calculation() {
         setIsLoading(false);
       } else {
         uniqueId = editingId || uuidv4();
-        const dateFormatted = dayjs().locale('tr').format('DD-MM-YYYY');
+        let dateFormatted = currentPayment.date.split(' ')[0].split('.').join('-');
         const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
+
+        if (useToday) {
+          currentPayment.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+        }
 
         const newPayment = { ...currentPayment, id: uniqueId };
 
@@ -192,6 +207,9 @@ export default function Payment_Calculation() {
         toast.success('Ödeme başarıyla eklendi!');
       }
 
+      console.log("Date", currentPayment.date);
+
+
       setCurrentPayment({
         id: uniqueId,
         price: 0,
@@ -199,7 +217,7 @@ export default function Payment_Calculation() {
         name: '',
         paymentType: null,
         info: '',
-        date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Reset to today's date
+        date: currentPayment.date,
         image: null,
       });
 
@@ -233,16 +251,27 @@ export default function Payment_Calculation() {
     setUseToday(!useToday);
     if (!useToday) {
       setCurrentPayment({ ...currentPayment, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date
+      handleDateChange(dayjs().locale('tr'));
     }
   };
 
   const handleDateChange = (newValue: dayjs.Dayjs | null) => {
-    const newDate = newValue ? newValue.format('DD.MM.YYYY') : '';
+    let newDate
+    if (useToday) {
+      newDate = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
+      currentPayment.date = newDate;
+    }
+    else {
+      newDate = newValue ? newValue.format('DD.MM.YYYY') : '';
+      currentPayment.date = newDate;
+    }
+
     const updatedPayment = {
       ...currentPayment,
       date: newDate,
     };
     setCurrentPayment(updatedPayment);
+    fetchTodayPayments(newDate);
   };
 
   const calculateTotalPrice = () => {
@@ -448,7 +477,7 @@ export default function Payment_Calculation() {
                 label="Tarih"
                 views={['year', 'month', 'day']}
                 defaultValue={dayjs().locale('tr')}
-                value={dayjs(currentPayment.date, 'DD.MM.YYYY HH:mm')}
+                value={dayjs(currentPayment.date, 'DD.MM.YYYY')}
                 onChange={handleDateChange}
                 disabled={useToday}
                 sx={{ width: '55%' }}

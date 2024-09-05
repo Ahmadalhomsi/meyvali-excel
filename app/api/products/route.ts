@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         // Get the third sheet (index 1)
         const worksheet = workbook.worksheets[1];
 
-        
+
         // workbook.eachSheet((worksheet, sheetId) => {
         //     console.log(`Sheet ID: ${sheetId}, Name: ${worksheet.name}`);
         // });
@@ -216,12 +216,10 @@ export async function PUT(request: NextRequest) {
         // Define the mapping of categories to their corresponding index in the first worksheet
         const categoryColumnMap: { [key: string]: string } = columns;
 
-        console.log(categoryColumnMap);
-
-
         // Sum products by category and payment type
         const summedProducts: { [key: string]: { nakit: number, other: number } } = {};
         allProducts.forEach(product => {
+            product.category = product.category.trim();
             if (!summedProducts[product.category]) {
                 summedProducts[product.category] = { nakit: 0, other: 0 };
             }
@@ -234,7 +232,8 @@ export async function PUT(request: NextRequest) {
 
         // Update worksheet1 with summed values
         Object.entries(summedProducts).forEach(([category, sums]) => {
-            const columnLetter = categoryColumnMap[category];
+            const trimmedCategory = category.trim(); // Trim the category key
+            const columnLetter = categoryColumnMap[trimmedCategory];
             if (columnLetter) {
                 const nakitRow = findRowForDate(worksheet1, dateOnly, 2);
                 const otherRow = findRowForDate(worksheet1, dateOnly, 34);
@@ -303,7 +302,7 @@ export async function DELETE(request: NextRequest) {
             if (row.getCell(9).value === id) {
                 deletedProduct = {
                     date: row.getCell(1).value?.toString().split(' ')[0],
-                    category: row.getCell(2).value?.toString(),
+                    category: row.getCell(2).value?.toString().trim(),
                     price: parseFloat(row.getCell(5).value?.toString() || '0'),
                     paymentType: row.getCell(6).value?.toString(),
                     image: row.getCell(8).value
@@ -338,13 +337,32 @@ export async function DELETE(request: NextRequest) {
             // If not imageOnly, delete the row from worksheet 3
             worksheet.spliceRows(rowToDelete, 1);
 
-            // Update the sum in worksheet 1
-            const categoryColumnMap: { [key: string]: string } = {
-                'SÜT': 'C', 'ET-DANA': 'D', 'ET-KUZU': 'E', 'BEYAZ-ET': 'F',
-                'EKMEK': 'G', 'MARKET PAZAR RAMİ': 'H', 'PAÇA': 'I', 'İŞKEMBE': 'J',
-                'AMBALAJ MALZEMESİ': 'K', 'SU-ŞİŞE': 'L', 'MEŞRUBAT': 'M', 'TÜP': 'N',
-                'MAZOT': 'O', 'EKSTRA ELEMAN': 'P'
+            let columns = {
+                'SÜT': 'C',
+                'ET-DANA': 'D',
+                'ET-KUZU': 'E',
+                'BEYAZ-ET': 'F',
+                'EKMEK': 'G',
+                'MARKET PAZAR RAMİ': 'H',
+                'PAÇA': 'I',
+                'İŞKEMBE': 'J',
+                'AMBALAJ MALZEMESİ': 'K',
+                'SU-ŞİŞE': 'L',
+                'MEŞRUBAT': 'M',
+                'TÜP': 'N',
+                'MAZOT': 'O',
+                'EKSTRA ELEMAN': 'P',
             };
+            try {
+                const res = await axios.get(`${serverBaseUrl}/api/columns?page=Products`)
+                // console.log(res.data);
+                columns = res.data.columns;
+            } catch (error) {
+                console.log('Error getting the products columns', error);
+            }
+
+            // Update the sum in worksheet 1
+            const categoryColumnMap: { [key: string]: string } = columns;
 
             const columnLetter = categoryColumnMap[deletedProduct.category];
             if (columnLetter) {
