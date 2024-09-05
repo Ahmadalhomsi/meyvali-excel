@@ -171,7 +171,7 @@ export default function ProductPage() {
       if (!currentProduct.category) {
         toast.error('Lütfen Katagori seçin.');
         return;
-      }else if (!currentProduct.paymentType) {
+      } else if (!currentProduct.paymentType) {
         toast.error('Lütfen Ödeme Türü seçin.');
         return;
       }
@@ -190,7 +190,7 @@ export default function ProductPage() {
 
         // Append the timestamp only when editing the image
         const timestamp = new Date().getTime();
-        let imageUrl : any;
+        let imageUrl: any;
 
 
         if (typeof currentProduct.image === 'string') {
@@ -219,7 +219,7 @@ export default function ProductPage() {
         const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
-        if(useToday){
+        if (useToday) {
           currentProduct.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
         }
 

@@ -25,8 +25,10 @@ import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
+import { v4 as uuidv4 } from 'uuid';
 
 interface TotalCash {
+    id: string;
     remaining: string;
     creditCard: string;
     TRQcode: string;
@@ -47,6 +49,7 @@ interface DailyData {
 
 export default function End_Of_Day() {
     const [totalCash, setTotalCash] = useState<TotalCash>({
+        id: uuidv4(),
         remaining: '0',
         creditCard: '0',
         TRQcode: '0',
@@ -149,6 +152,7 @@ export default function End_Of_Day() {
                 totalCash: processedTotalCash,
                 imageBuffer: image,
                 date: dayjs().format('DD.MM.YYYY HH:mm'),
+                id: totalCash.id || uuidv4(),
                 userName
             });
             if (response.status === 200) {

@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
         const date = searchParams.get('date');
-        console.log('Received GET request with date:', date);
 
         if (!date) {
             return NextResponse.json({ error: 'Date parameter is required' }, { status: 400 });

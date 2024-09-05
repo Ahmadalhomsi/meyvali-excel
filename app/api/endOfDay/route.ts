@@ -84,7 +84,7 @@ import axios from 'axios';
 
 export async function PUT(request: NextRequest) {
     try {
-        const { date, totalCash, imageBuffer, userName } = await request.json();
+        const { id, date, totalCash, imageBuffer, userName } = await request.json();
 
         const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
@@ -114,7 +114,7 @@ export async function PUT(request: NextRequest) {
 
         // If the worksheet is empty, add the template headers and set column widths
         if (worksheet.actualRowCount === 0) {
-            const headers = ['Tarih', 'Kalan', 'Kredi Kartı', 'Kare Kod', 'e-Fatura', 'Ek Bilgi', 'Fotoğraf'];
+            const headers = ['Tarih', 'Kalan', 'Kredi Kartı', 'Kare Kod', 'e-Fatura', 'Ek Bilgi', 'Fotoğraf', 'ID', 'Kullanıcı'];
             worksheet.addRow(headers);
 
             // Adjust column widths
@@ -126,35 +126,46 @@ export async function PUT(request: NextRequest) {
                 { width: 10 }, // e-Fatura
                 { width: 25 }, // Ek Bilgi
                 { width: 15 }, // Fotoğraf
+                { width: 5 }, // ID
+                { width: 20 }  // Kullanıcı
             ];
         }
 
-        // Find and remove all rows with the given date in the first column
-        let rowToDelete = 1;
-        while (rowToDelete <= worksheet.rowCount) {
-            const cell = worksheet.getCell(`A${rowToDelete}`);
-            if (cell.value === date) {
-                worksheet.spliceRows(rowToDelete, 1);
-            } else {
-                rowToDelete++;
+        // Find the row with the given ID or add a new row
+        let rowToUpdate: ExcelJS.Row | undefined;
+        worksheet.eachRow((row, rowNumber) => {
+            if (row.getCell(8).value === id) {
+                rowToUpdate = row;
             }
+        });
+
+        if (rowToUpdate) {
+            // Update the existing row
+            rowToUpdate.getCell(1).value = date;
+            rowToUpdate.getCell(2).value = totalCash.remaining;
+            rowToUpdate.getCell(3).value = totalCash.creditCard;
+            rowToUpdate.getCell(4).value = totalCash.TRQcode;
+            rowToUpdate.getCell(5).value = totalCash.eBill;
+            rowToUpdate.getCell(6).value = totalCash.info;
+            
+            rowToUpdate.getCell(9).value = userName; // Assuming image is in cell G (column 7) so userName is in 8th column
+        } else {
+            // Insert new row if ID not found
+            const newRow = [
+                date,
+                totalCash.remaining,
+                totalCash.creditCard,
+                totalCash.TRQcode,
+                totalCash.eBill,
+                totalCash.info,
+                "", // Placeholder for image
+                id,
+                userName
+            ];
+            rowToUpdate = worksheet.addRow(newRow);
         }
 
-        // Add the new totalCash row
-        const newRow = [
-            date,
-
-            totalCash.remaining,
-            totalCash.creditCard,
-            totalCash.TRQcode,
-            totalCash.eBill,
-            totalCash.info,
-            "",
-            userName
-        ];
-        worksheet.addRow(newRow);
-
-        const newRowIndex = worksheet.rowCount;
+        const newRowIndex = rowToUpdate.number;
 
         // Handle image replacement logic
         const imageCell = worksheet.getCell(`G${newRowIndex}`);
