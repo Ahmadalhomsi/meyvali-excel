@@ -168,7 +168,17 @@ export default function ProductPage() {
     try {
       let uniqueId
 
-      if (editingId !== null) {
+      if (!currentProduct.category) {
+        toast.error('Lütfen Katagori seçin.');
+        return;
+      }else if (!currentProduct.paymentType) {
+        toast.error('Lütfen Ödeme Türü seçin.');
+        return;
+      }
+
+
+
+      if (editingId !== null) { // Editing an existing product
         setIsLoading(true);
         // Format date and construct image URL outside the loop
         uniqueId = editingId;

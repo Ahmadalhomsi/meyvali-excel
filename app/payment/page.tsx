@@ -146,7 +146,12 @@ export default function Payment_Calculation() {
     try {
       let uniqueId
 
-      if (editingId !== null) {
+      if (!currentPayment.paymentType) {
+        toast.error('Lütfen Ödeme Türü seçin.');
+        return;
+      }
+
+      if (editingId !== null) { // Editing an existing payment
         setIsLoading(true);
         // Format date and construct image URL outside the loop
         uniqueId = editingId;
