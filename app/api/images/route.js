@@ -26,7 +26,7 @@ export async function GET(req) {
 
         return NextResponse.json({ images });
     } catch (err) {
-        console.error('Error reading directory:', err);
+        console.log('Error reading directory:', err);
         return NextResponse.json({ error: 'Failed to read directory' }, { status: 500 });
     }
 }
@@ -48,7 +48,7 @@ export async function POST(req) { // For image deleteion
                 const filePath = path.join(directory, image);
                 fs.unlink(filePath, (err) => {
                     if (err) {
-                        console.error(`Error deleting file ${image}:`, err);
+                        console.log(`Error deleting file ${image}:`, err);
                         reject(err);
                     } else {
                         resolve();
@@ -61,7 +61,7 @@ export async function POST(req) { // For image deleteion
 
         return NextResponse.json({ message: 'Selected images deleted successfully' });
     } catch (error) {
-        console.error('Error deleting images:', error);
+        console.log('Error deleting images:', error);
         return NextResponse.json({ error: 'Failed to delete some images' }, { status: 500 });
     }
 }

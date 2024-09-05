@@ -160,7 +160,7 @@ export async function PUT(request: NextRequest) {
 
             console.log(`Updated image for date: ${date}`);
         } else {
-            console.error('Image is not a valid base64-encoded string.');
+            console.log('Image is not a valid base64-encoded string.');
         }
 
         // Insert new row if ID not found
@@ -256,7 +256,7 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json({ message: 'Payment and image link successfully updated' }, { status: 200 });
     } catch (error) {
-        console.error('Error in PUT function:', error);
+        console.log('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }

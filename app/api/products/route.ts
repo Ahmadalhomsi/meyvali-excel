@@ -165,7 +165,7 @@ export async function PUT(request: NextRequest) {
 
             console.log(`Updated image for date: ${date}`);
         } else {
-            console.error('Image is not included (Backend).');
+            console.log('Image is not included (Backend).');
         }
 
         // Get all products for the same date
@@ -249,7 +249,7 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json({ message: 'Product and summary successfully updated', id: id || uuidv4() }, { status: 200 });
     } catch (error) {
-        console.error('Error in PUT function:', error);
+        console.log('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }

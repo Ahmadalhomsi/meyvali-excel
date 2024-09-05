@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ dailyData }, { status: 200 });
     } catch (error) {
-        console.error('Error in GET function:', error);
+        console.log('Error in GET function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }
@@ -242,7 +242,7 @@ export async function PUT(request: NextRequest) {
 
         return NextResponse.json({ message: 'Total cash and image link successfully updated' }, { status: 200 });
     } catch (error) {
-        console.error('Error in PUT function:', error);
+        console.log('Error in PUT function:', error);
         return NextResponse.json({ error: 'An error occurred while processing the request' }, { status: 500 });
     }
 }

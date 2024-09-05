@@ -114,7 +114,7 @@ export default function End_Of_Day() {
                 console.log(response.data.dailyData);
             }
         } catch (error) {
-            console.error('Error fetching daily data:', error);
+            console.log('Error fetching daily data:', error);
             toast.error('Günlük veri alınırken bir hata oluştu.');
         } finally {
             setIsLoading(false);
@@ -160,7 +160,7 @@ export default function End_Of_Day() {
                 fetchDailyData();
             }
         } catch (error) {
-            console.error('Error updating total cash:', error);
+            console.log('Error updating total cash:', error);
             toast.error('Toplam nakit bilgisi güncellenirken bir hata oluştu.');
         } finally {
             setIsLoading(false);

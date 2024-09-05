@@ -27,7 +27,7 @@ const CategoriesManagement = () => {
             const response = await axios.get('/api/categories');
             setCategories(response.data.categories);
         } catch (error) {
-            console.error('Error fetching categories:', error);
+            console.log('Error fetching categories:', error);
             toast.error('Kategoriler yüklenirken bir hata oluştu.');
         }
     };
@@ -40,7 +40,7 @@ const CategoriesManagement = () => {
             fetchCategories();
             toast.success('Kategori başarıyla eklendi.');
         } catch (error) {
-            console.error('Error adding category:', error);
+            console.log('Error adding category:', error);
             toast.error('Kategori eklenirken bir hata oluştu.');
         }
     };
@@ -51,7 +51,7 @@ const CategoriesManagement = () => {
             fetchCategories();
             toast.success('Kategori başarıyla silindi.');
         } catch (error) {
-            console.error('Error deleting category:', error);
+            console.log('Error deleting category:', error);
             toast.error('Kategori silinirken bir hata oluştu.');
         }
     };

@@ -19,6 +19,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import CategoriesManagement from './CategoriesManagement';
 import ColumnsManagement from './ColumnsManagement';
+import UserManagement from './UsersManagement';
 
 
 const FileManagementPage = () => {
@@ -37,7 +38,7 @@ const FileManagementPage = () => {
             const response = await axios.get('/api/images');
             setImages(response.data.images);
         } catch (error) {
-            console.error('Error fetching images:', error);
+            console.log('Error fetching images:', error);
             toast.error('Resimler yüklenirken bir hata oluştu.');
         }
     };
@@ -54,7 +55,7 @@ const FileManagementPage = () => {
             link.click();
             link.remove();
         } catch (error) {
-            console.error('Error downloading Excel file:', error);
+            console.log('Error downloading Excel file:', error);
             toast.error('Excel dosyası indirilirken bir hata oluştu.');
         } finally {
             setIsDownloading(false);
@@ -90,7 +91,7 @@ const FileManagementPage = () => {
                     throw new Error('Dosya yükleme başarısız.');
                 }
             } catch (error) {
-                console.error('Error replacing Excel file:', error);
+                console.log('Error replacing Excel file:', error);
                 toast.error('Excel dosyası değiştirilirken bir hata oluştu.');
             } finally {
                 setIsReplacing(false);
@@ -130,7 +131,7 @@ const FileManagementPage = () => {
             fetchImages(); // Refresh the image list
             setSelectedImages([]);
         } catch (error) {
-            console.error('Error deleting images:', error);
+            console.log('Error deleting images:', error);
             toast.error('Resimler silinirken bir hata oluştu.');
         } finally {
             setIsDeleting(false);
@@ -180,12 +181,17 @@ const FileManagementPage = () => {
                 </Grid>
 
                 <Grid item xs={12}>
+                    <UserManagement />
+                </Grid>
+
+                <Grid item xs={12}>
                     <CategoriesManagement />
                 </Grid>
 
                 <Grid item xs={12}>
                     <ColumnsManagement />
                 </Grid>
+
 
                 <Grid item xs={12}>
                     <Box sx={{ border: 1, borderColor: 'grey.300', p: 2, borderRadius: 1, mt: 2 }}>

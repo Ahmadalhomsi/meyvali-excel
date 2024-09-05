@@ -9,7 +9,7 @@ export async function GET(req, res) {
         const categories = fs.readFileSync(categoriesFilePath, 'utf-8').split('\n').filter(Boolean);
         return Response.json({ categories });
     } catch (error) {
-        console.error('Error reading categories:', error);
+        console.log('Error reading categories:', error);
         return Response.error({ error: 'Failed to read categories' });
     }
 }
@@ -24,7 +24,7 @@ export async function POST(req, res) {
         return Response.json({ message: 'Category added successfully' });
     }
     catch (error) {
-        console.error('Error adding category:', error);
+        console.log('Error adding category:', error);
         return Response.error({ error: 'Failed to add category' });
     }
 }
@@ -37,7 +37,7 @@ export async function DELETE(req, res) {
         fs.writeFileSync(categoriesFilePath, categories.join('\n') + '\n');
         return Response.json({ message: 'Category deleted successfully' });
     } catch (error) {
-        console.error('Error deleting category:', error);
+        console.log('Error deleting category:', error);
         return Response.error({ error: 'Failed to delete category'});
     }
 }
@@ -55,7 +55,7 @@ export async function DELETE(req, res) {
 //             const categories = fs.readFileSync(categoriesFilePath, 'utf-8').split('\n').filter(Boolean);
 //             res.status(200).json({ categories });
 //         } catch (error) {
-//             console.error('Error reading categories:', error);
+//             console.log('Error reading categories:', error);
 //             res.status(500).json({ error: 'Failed to read categories' });
 //         }
 //     } else if (req.method === 'POST') {
@@ -64,7 +64,7 @@ export async function DELETE(req, res) {
 //             fs.appendFileSync(categoriesFilePath, category + '\n');
 //             res.status(200).json({ message: 'Category added successfully' });
 //         } catch (error) {
-//             console.error('Error adding category:', error);
+//             console.log('Error adding category:', error);
 //             res.status(500).json({ error: 'Failed to add category' });
 //         }
 //     } else if (req.method === 'DELETE') {
@@ -75,7 +75,7 @@ export async function DELETE(req, res) {
 //             fs.writeFileSync(categoriesFilePath, categories.join('\n') + '\n');
 //             res.status(200).json({ message: 'Category deleted successfully' });
 //         } catch (error) {
-//             console.error('Error deleting category:', error);
+//             console.log('Error deleting category:', error);
 //             res.status(500).json({ error: 'Failed to delete category' });
 //         }
 //     } else {

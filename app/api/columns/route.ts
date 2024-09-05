@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const columns = await readColumnsFile();
     return NextResponse.json({ columns: columns[page] || {} });
   } catch (error) {
-    console.error('Error in GET /api/columns:', error);
+    console.log('Error in GET /api/columns:', error);
     return NextResponse.json({ error: 'Error fetching columns' }, { status: 500 });
   }
 }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     await writeColumnsFile(columns);
     return NextResponse.json({ message: 'Column added successfully' });
   } catch (error) {
-    console.error('Error in POST /api/columns:', error);
+    console.log('Error in POST /api/columns:', error);
     return NextResponse.json({ error: 'Error adding column' }, { status: 500 });
   }
 }
@@ -83,7 +83,7 @@ export async function PUT(request: NextRequest) {
     await writeColumnsFile(columns);
     return NextResponse.json({ message: 'Column updated successfully' });
   } catch (error) {
-    console.error('Error in PUT /api/columns:', error);
+    console.log('Error in PUT /api/columns:', error);
     return NextResponse.json({ error: 'Error updating column' }, { status: 500 });
   }
 }
@@ -104,7 +104,7 @@ export async function DELETE(request: NextRequest) {
     }
     return NextResponse.json({ message: 'Column deleted successfully' });
   } catch (error) {
-    console.error('Error in DELETE /api/columns:', error);
+    console.log('Error in DELETE /api/columns:', error);
     return NextResponse.json({ error: 'Error deleting column' }, { status: 500 });
   }
 }

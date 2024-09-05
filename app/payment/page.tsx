@@ -91,7 +91,7 @@ export default function Payment_Calculation() {
         setPayments(paymentsWithIds);
       }
     } catch (error) {
-      console.error('Error fetching today\'s products:', error);
+      console.log('Error fetching today\'s products:', error);
       toast.error('Günün Ödemeleri alınırken bir hata oluştu.');
     } finally {
       setIsLoading(false);
@@ -247,7 +247,7 @@ export default function Payment_Calculation() {
       setPayments(updatedPayments);
       toast.success('Ödeme başarıyla silindi!');
     } catch (error) {
-      console.error('Error deleting product:', error);
+      console.log('Error deleting product:', error);
       toast.error('Ödeme silinirken bir hata oluştu.');
     }
   };

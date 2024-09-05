@@ -36,7 +36,7 @@ const ColumnManagement = () => {
             const response = await axios.get(`/api/columns?page=${selectedPage}`);
             setColumns(response.data.columns);
         } catch (error) {
-            console.error('Error fetching columns:', error);
+            console.log('Error fetching columns:', error);
             toast.error('Sütunlar yüklenirken bir hata oluştu.');
         }
     };
@@ -62,7 +62,7 @@ const ColumnManagement = () => {
             setNewColumnName('');
             setNewColumnLetter('');
         } catch (error) {
-            console.error('Error adding column:', error);
+            console.log('Error adding column:', error);
             toast.error('Sütun eklenirken bir hata oluştu.');
         }
     };
@@ -84,7 +84,7 @@ const ColumnManagement = () => {
             fetchColumns();
             setEditDialogOpen(false);
         } catch (error) {
-            console.error('Error updating column:', error);
+            console.log('Error updating column:', error);
             toast.error('Sütun güncellenirken bir hata oluştu.');
         }
     };
@@ -97,7 +97,7 @@ const ColumnManagement = () => {
             toast.success('Sütun başarıyla silindi.');
             fetchColumns();
         } catch (error) {
-            console.error('Error deleting column:', error);
+            console.log('Error deleting column:', error);
             toast.error('Sütun silinirken bir hata oluştu.');
         }
     };

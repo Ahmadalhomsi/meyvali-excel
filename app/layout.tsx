@@ -2,7 +2,7 @@
 
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
+import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn, ClerkLoaded } from '@clerk/nextjs';
 import Layout from '../components/Layout';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -31,15 +31,15 @@ export default function RootLayout({
           <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
             <CssBaseline />
             <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
-            <Toaster position="bottom-right" />
+              <Toaster position="bottom-right" />
               {/* Protect all pages */}
-              <SignedIn>
-                {children}
-              </SignedIn>
-              <SignedOut>
-                {/* Redirect unsigned users to the sign-in page */}
-                <RedirectToSignIn />
-              </SignedOut>
+
+              <ClerkLoaded>
+                <main className="min-h-screen">
+                    {children}
+                </main>
+              </ClerkLoaded>
+
             </Layout>
           </ThemeProvider>
         </body>
