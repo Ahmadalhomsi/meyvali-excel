@@ -115,6 +115,7 @@ export default function Payment_Calculation() {
   const { user } = useUser();
 
   const updatePayment = async (payment: Payment) => {
+    setIsLoading(true);
     if (useToday) {
       currentPayment.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
     }
@@ -140,6 +141,7 @@ export default function Payment_Calculation() {
       console.log('Error updating product:', error);
       throw error; // Rethrow the error to handle it in the calling function
     }
+    setIsLoading(false);
   };
 
   const handleAddPayment = async () => {

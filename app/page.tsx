@@ -136,7 +136,7 @@ export default function ProductPage() {
   const { user } = useUser();
 
   const updateProduct = async (product: Product) => {
-
+    setIsLoading(true);
     if (useToday) {
       currentProduct.date = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');
     }
@@ -161,6 +161,7 @@ export default function ProductPage() {
       console.log('Error updating product:', error);
       throw error; // Rethrow the error to handle it in the calling function
     }
+    setIsLoading(false);
   };
 
   const handleAddProduct = async () => {
