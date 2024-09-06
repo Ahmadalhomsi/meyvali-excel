@@ -76,13 +76,17 @@ const UserManagement = () => {
             toast.success('Davetiye başarıyla gönderildi.');
         } else {
             console.log('Error:', data.error.errors);
-            toast.error('Davetiye gönderilirken bir hata oluştu.');
 
             if (data.error.errors[0].message === "duplicate invitation") {
                 toast.error('Bu e-posta adresine zaten bir davetiye gönderilmiş.');
+                return;
             }
             else if (data.error.errors[0].message === "is invalid") {
                 toast.error('Geçersiz e-posta adresi.');
+                return;
+            }
+            else {
+                toast.error('Davetiye gönderilirken bir hata oluştu.');
             }
         }
     }
