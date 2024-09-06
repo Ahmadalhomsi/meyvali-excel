@@ -30,7 +30,7 @@ export async function POST(req) {
     if (!response.ok) {
       const errorResponse = await response.json();
       console.log('Failed to create invitation:', errorResponse);
-      return NextResponse.json({ error: 'Failed to create invitation' }, { status: 500 });
+      return NextResponse.json({ error: errorResponse }, { status: 500 });
     }
 
     // Parse the response data
@@ -40,6 +40,6 @@ export async function POST(req) {
     return NextResponse.json({ invitation: data });
   } catch (error) {
     console.log('Failed to generate invitation:', error);
-    return NextResponse.json({ error: 'Failed to generate invitation' }, { status: 500 });
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }

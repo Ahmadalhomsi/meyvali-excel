@@ -9,9 +9,13 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { useState } from 'react';
 import { lightTheme, darkTheme } from '../styles/theme';
 import { trTR } from '@clerk/localizations'
-
+import { usePathname } from 'next/navigation';
 
 const inter = Inter({ subsets: ["latin"] });
+
+// List of public routes (pages that don't require authentication)
+const publicPages = ['/sign-in', '/sign-up'];
+
 
 export default function RootLayout({
   children,
@@ -19,10 +23,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [darkMode, setDarkMode] = useState(false);
+  const pathname = usePathname();
+
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
+
+
+  const isPublicPage = publicPages.includes(pathname);
 
   return (
     <ClerkProvider localization={trTR}>
@@ -32,14 +41,16 @@ export default function RootLayout({
             <CssBaseline />
             <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
               <Toaster position="bottom-right" />
-              {/* Protect all pages */}
-
-              <ClerkLoaded>
-                <main className="min-h-screen">
-                    {children}
-                </main>
-              </ClerkLoaded>
-
+              {isPublicPage ? (
+                children
+              ) : (
+                <>
+                  <SignedIn>{children}</SignedIn>
+                  <SignedOut>
+                    <RedirectToSignIn />
+                  </SignedOut>
+                </>
+              )}
             </Layout>
           </ThemeProvider>
         </body>

@@ -66,14 +66,26 @@ const UserManagement = () => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email : newUserEmail }),
+            body: JSON.stringify({ email: newUserEmail }),
         });
+
+        console.log('Response:', response);
+
 
         const data = await response.json();
         if (data.invitation) {
             console.log('Invitation sent:', data.invitation);
+            toast.success('Davetiye başarıyla gönderildi.');
         } else {
-            console.log('Error:', data.error);
+            console.log('Error:', data.error.errors);
+            toast.error('Davetiye gönderilirken bir hata oluştu.');
+
+            if (data.error.errors[0].message === "duplicate invitation") {
+                toast.error('Bu e-posta adresine zaten bir davetiye gönderilmiş.');
+            }
+            else if (data.error.errors[0].message === "is invalid") {
+                toast.error('Geçersiz e-posta adresi.');
+            }
         }
     }
 

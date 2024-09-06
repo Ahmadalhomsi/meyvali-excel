@@ -99,6 +99,41 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
         </Box>
     );
 
+    const isSignInPage = currentPage === '/sign-in';
+    const isSignUpPage = currentPage === '/sign-up';
+
+
+    if (isSignInPage || isSignUpPage) {
+        return (
+            <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                {/* Toggle Dark Mode Button */}
+                <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+                    <IconButton onClick={toggleDarkMode} color="inherit">
+                        {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+                    </IconButton>
+                </Box>
+
+                {/* Centering the content */}
+                <Box
+                    sx={{
+                        flexGrow: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        bgcolor: theme.palette.background.default,
+                        p: 2, // padding to ensure better responsiveness on small devices
+                    }}
+                >
+                    {/* Ensure the content is centered */}
+                    <Box sx={{ textAlign: 'center', maxWidth: '400px', width: '100%' }}>
+                        {children}
+                    </Box>
+                </Box>
+            </Box>
+        );
+    }
+
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <AppBar position="static">
