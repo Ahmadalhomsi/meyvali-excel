@@ -69,8 +69,6 @@ const UserManagement = () => {
             body: JSON.stringify({ email: newUserEmail }),
         });
 
-        console.log('Response:', response);
-
 
         const data = await response.json();
         if (data.invitation) {
