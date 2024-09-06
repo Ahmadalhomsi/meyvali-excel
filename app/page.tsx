@@ -142,7 +142,7 @@ export default function ProductPage() {
     }
 
     try {
-
+      setIsLoading(true);
       const userName = user?.username || user?.fullName || user?.emailAddresses[0].emailAddress;
 
       console.log('User name:', userName);
@@ -162,6 +162,7 @@ export default function ProductPage() {
       console.log('Error updating product:', error);
       throw error; // Rethrow the error to handle it in the calling function
     }
+    setIsLoading(false);
   };
 
   const handleAddProduct = async () => {
