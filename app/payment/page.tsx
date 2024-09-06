@@ -120,7 +120,7 @@ export default function Payment_Calculation() {
     }
 
     try {
-      setIsLoading(true);
+
       const userName = user?.username || user?.fullName || user?.emailAddresses[0].emailAddress;
 
       console.log('User name:', userName);
@@ -140,7 +140,6 @@ export default function Payment_Calculation() {
       console.log('Error updating product:', error);
       throw error; // Rethrow the error to handle it in the calling function
     }
-    setIsLoading(false);
   };
 
   const handleAddPayment = async () => {
