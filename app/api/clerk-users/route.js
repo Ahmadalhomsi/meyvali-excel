@@ -33,20 +33,3 @@ export async function POST(req) {
     return NextResponse.json({ error: 'Failed to update user role' }, { status: 500 });
   }
 }
-
-// New route for sending invitations
-export async function sendInvite(req) {
-  try {
-    const { email } = await req.json();
-
-    const invitation = await clerkClient.invitations.createInvitation({
-      emailAddress: email,
-      redirectUrl: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL,
-    });
-
-    return NextResponse.json({ message: 'Invitation sent successfully', invitation });
-  } catch (error) {
-    console.log('Failed to send invitation:', error);
-    return NextResponse.json({ error: 'Failed to send invitation' }, { status: 500 });
-  }
-}
