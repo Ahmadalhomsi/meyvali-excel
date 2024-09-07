@@ -122,6 +122,8 @@ export default function End_Of_Day() {
     };
 
     const { user } = useUser();
+    const isAdmin = user?.publicMetadata?.role === 'admin';
+    const isSupervisor = user?.publicMetadata?.role === 'supervisor';
 
     const uploadTotalCash = async () => {
         if (!image) {
@@ -284,23 +286,25 @@ export default function End_Of_Day() {
                         <br />
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={4}>
-                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
-                            <DatePicker
-                                label="Tarih"
-                                views={['year', 'month', 'day']}
-                                defaultValue={dayjs().locale('tr')}
-                                value={dayjs(totalCash.date, 'DD.MM.YYYY')}
-                                onChange={(newValue) => {
-                                    setTotalCash(prev => ({
-                                        ...prev,
-                                        date: newValue ? newValue.format('DD.MM.YYYY') : prev.date
-                                    }));
-                                }}
-                                disabled={useToday}
-                                sx={{ width: '40%' }}
-                            />
-                        </LocalizationProvider>
+                    <Grid item xs={12} sm={6} md={3}>
+                        {(isSupervisor || isAdmin) && (
+                            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
+                                <DatePicker
+                                    label="Tarih"
+                                    views={['year', 'month', 'day']}
+                                    defaultValue={dayjs().locale('tr')}
+                                    value={dayjs(totalCash.date, 'DD.MM.YYYY')}
+                                    onChange={(newValue) => {
+                                        setTotalCash(prev => ({
+                                            ...prev,
+                                            date: newValue ? newValue.format('DD.MM.YYYY') : prev.date
+                                        }));
+                                    }}
+                                    disabled={useToday || !(isAdmin || isSupervisor)} // Disables if useToday is true or user is admin/supervisor
+                                    sx={{ width: '55%' }}
+                                />
+                            </LocalizationProvider>
+                        )}
 
                         <FormControlLabel
                             control={
@@ -309,12 +313,14 @@ export default function End_Of_Day() {
                                     onChange={handleCheckboxChange}
                                     name="useToday"
                                     color="primary"
+                                    disabled={!(isAdmin || isSupervisor)} // Disable if user is admin or supervisor
                                 />
                             }
                             label="Bugün"
                             sx={{ marginTop: '10px', marginLeft: '5px' }}
                         />
                     </Grid>
+                    
                 </Grid>
             </form>
 

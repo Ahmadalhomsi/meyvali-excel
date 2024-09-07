@@ -114,6 +114,8 @@ export default function Payment_Calculation() {
   };
 
   const { user } = useUser();
+  const isAdmin = user?.publicMetadata?.role === 'admin';
+  const isSupervisor = user?.publicMetadata?.role === 'supervisor';
 
   const updatePayment = async (payment: Payment) => {
     setIsLoading(true);
@@ -482,17 +484,19 @@ export default function Payment_Calculation() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
-              <DatePicker
-                label="Tarih"
-                views={['year', 'month', 'day']}
-                defaultValue={dayjs().locale('tr')}
-                value={dayjs(currentPayment.date, 'DD.MM.YYYY')}
-                onChange={handleDateChange}
-                disabled={useToday}
-                sx={{ width: '55%' }}
-              />
-            </LocalizationProvider>
+            {(isSupervisor || isAdmin) && (
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
+                <DatePicker
+                  label="Tarih"
+                  views={['year', 'month', 'day']}
+                  defaultValue={dayjs().locale('tr')}
+                  value={dayjs(currentPayment.date, 'DD.MM.YYYY')}
+                  onChange={handleDateChange}
+                  disabled={useToday || !(isAdmin || isSupervisor)} // Disables if useToday is true or user is admin/supervisor
+                  sx={{ width: '55%' }}
+                />
+              </LocalizationProvider>
+            )}
 
             <FormControlLabel
               control={
@@ -501,6 +505,7 @@ export default function Payment_Calculation() {
                   onChange={handleCheckboxChange}
                   name="useToday"
                   color="primary"
+                  disabled={!(isAdmin || isSupervisor)} // Disable if user is admin or supervisor
                 />
               }
               label="Bugün"

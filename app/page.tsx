@@ -135,6 +135,8 @@ export default function ProductPage() {
   };
 
   const { user } = useUser();
+  const isAdmin = user?.publicMetadata?.role === 'admin';
+  const isSupervisor = user?.publicMetadata?.role === 'supervisor';
 
   const updateProduct = async (product: Product) => {
     setIsLoading(true);
@@ -331,9 +333,9 @@ export default function ProductPage() {
         const imageDataUrl = e.target?.result as string;
         const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
         console.log('Selected image:', file.name, fileExtension);
-        
-        const updatedProduct = { 
-          ...currentProduct, 
+
+        const updatedProduct = {
+          ...currentProduct,
           image: imageDataUrl,
           imageExtension: fileExtension
         };
@@ -535,17 +537,19 @@ export default function ProductPage() {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
-              <DatePicker
-                label="Tarih"
-                views={['year', 'month', 'day',]}
-                defaultValue={dayjs().locale('tr')}
-                value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
-                onChange={handleDateChange}
-                disabled={useToday}
-                sx={{ width: '55%' }}
-              />
-            </LocalizationProvider>
+            {(isSupervisor || isAdmin) && (
+              <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
+                <DatePicker
+                  label="Tarih"
+                  views={['year', 'month', 'day']}
+                  defaultValue={dayjs().locale('tr')}
+                  value={dayjs(currentProduct.date, 'DD.MM.YYYY')}
+                  onChange={handleDateChange}
+                  disabled={useToday || !(isAdmin || isSupervisor)} // Disables if useToday is true or user is admin/supervisor
+                  sx={{ width: '55%' }}
+                />
+              </LocalizationProvider>
+            )}
 
             <FormControlLabel
               control={
@@ -554,12 +558,14 @@ export default function ProductPage() {
                   onChange={handleCheckboxChange}
                   name="useToday"
                   color="primary"
+                  disabled={!(isAdmin || isSupervisor)} // Disable if user is admin or supervisor
                 />
               }
               label="Bugün"
               sx={{ marginTop: '10px', marginLeft: '5px' }}
             />
           </Grid>
+
 
           <Grid item xs={12} sm={6} md={4} sx={{ display: "flex", flexDirection: "row", alignItems: "center" }}>
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
