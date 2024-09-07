@@ -2,7 +2,7 @@
 
 import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
-import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn, ClerkLoaded, RedirectToSignUp } from '@clerk/nextjs';
+import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn, ClerkLoaded } from '@clerk/nextjs';
 import Layout from '../components/Layout';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -33,8 +33,6 @@ export default function RootLayout({
 
   const isPublicPage = publicPages.includes(pathname);
 
-  const isTicketPage = pathname.includes('/signup');
-
   return (
     <ClerkProvider localization={trTR}>
       <html lang="en">
@@ -43,25 +41,20 @@ export default function RootLayout({
             <CssBaseline />
             <Layout darkMode={darkMode} toggleDarkMode={toggleDarkMode}>
               <Toaster position="bottom-right" />
-              {isTicketPage ? (
-                <RedirectToSignUp />
+              {isPublicPage ? (
+                children
               ) : (
-                isPublicPage ? (
-                  children
-                ) : (
-                  <>
-                    <SignedIn>{children}</SignedIn>
-                    <SignedOut>
-                      <RedirectToSignIn />
-
-                    </SignedOut>
-                  </>
-                ))
-              }
+                <>
+                  <SignedIn>{children}</SignedIn>
+                  <SignedOut>
+                    <RedirectToSignIn />
+                  </SignedOut>
+                </>
+              )}
             </Layout>
           </ThemeProvider>
         </body>
-      </html >
-    </ClerkProvider >
+      </html>
+    </ClerkProvider>
   );
 }
