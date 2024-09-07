@@ -127,7 +127,7 @@ export async function PUT(request: NextRequest) {
                 rowToUpdate = row;
             }
         });
-      
+
 
         if (rowToUpdate) {
             // Update existing row
@@ -144,23 +144,39 @@ export async function PUT(request: NextRequest) {
             const newRow = [date, category, name, quantity, price, paymentType, info, , id, userName];
             rowToUpdate = worksheet.addRow(newRow);
         }
+        
+        const sharp = require('sharp');
+
 
         // Handle image update
-        if (image && typeof image === 'string' && image.startsWith('data:image/png;base64,')) {
+        if (image && typeof image === 'string' && image.startsWith('data:image/')) {
+ 
             const uniqueId = id;
             const dateFormatted = dateOnly.replace(/\./g, '-');
-            const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+            const match = image.match(/^data:image\/(\w+);base64,/);
+
+            // Handle both 'jpeg' and 'jpg'
+            let imageType = match ? match[1] : 'png'; // Default to png if type can't be determined
+            if (imageType === 'jpeg') {
+                imageType = 'jpg'; // Treat 'jpeg' as 'jpg'
+            }
+
+            const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.${imageType}`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 
-            // Save the new image
+            // Convert base64 to buffer
             const buffer = Buffer.from(image.split(',')[1], 'base64');
-            await fs.writeFile(imageFilePath, buffer);
+
+            // Compress the image without changing its dimensions
+            await sharp(buffer)
+                .toFormat("webp", { quality: 20 }) // Adjust quality as needed
+                .toFile(imageFilePath);
 
             const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
             // Update the Excel file with the new image link
             const imageCell = rowToUpdate.getCell(8);
-            imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl } as ExcelJS.CellHyperlinkValue;
+            imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl };
             imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
 
             console.log(`Updated image for date: ${date}`);

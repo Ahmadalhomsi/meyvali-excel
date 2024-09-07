@@ -147,7 +147,7 @@ export async function PUT(request: NextRequest) {
             rowToUpdate.getCell(4).value = totalCash.TRQcode;
             rowToUpdate.getCell(5).value = totalCash.eBill;
             rowToUpdate.getCell(6).value = totalCash.info;
-            
+
             rowToUpdate.getCell(9).value = userName; // Assuming image is in cell G (column 7) so userName is in 8th column
         } else {
             // Insert new row if ID not found
@@ -175,10 +175,22 @@ export async function PUT(request: NextRequest) {
             oldImageUrl = (imageCell.value as ExcelJS.CellHyperlinkValue).hyperlink;
         }
 
+        const sharp = require('sharp');
+
         if (imageBuffer) {
             // Generate a filename based on the date
             const dateFormatted = dateOnly.replace(/\./g, '-');
-            const imageFileName = `${dateFormatted}-Gun_Sonu.png`;
+
+            // Extract image type from the base64 string
+            const match = imageBuffer.match(/^data:image\/(\w+);base64,/);
+            let imageType = match ? match[1] : 'png'; // Default to png if type can't be determined
+
+            // Handle both 'jpeg' and 'jpg'
+            if (imageType === 'jpeg') {
+                imageType = 'jpg'; // Treat 'jpeg' as 'jpg'
+            }
+
+            const imageFileName = `${dateFormatted}-Gun_Sonu.${imageType}`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 
             // Check if an old image exists and delete it
@@ -192,9 +204,13 @@ export async function PUT(request: NextRequest) {
                 }
             }
 
-            // Save the new image
+            // Convert base64 to buffer
             const buffer = Buffer.from(imageBuffer.split(',')[1], 'base64');
-            await fs.writeFile(imageFilePath, buffer);
+
+            // Compress the image using sharp
+            await sharp(buffer)
+                .toFormat("webp", { quality: 20 }) // Compress image, adjust quality as needed
+                .toFile(imageFilePath);
 
             const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
@@ -204,6 +220,7 @@ export async function PUT(request: NextRequest) {
 
             console.log(`Updated image for date: ${date}`);
         }
+
 
         // Now move to the first worksheet
         const worksheet1 = workbook.getWorksheet(1);

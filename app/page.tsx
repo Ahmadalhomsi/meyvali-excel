@@ -44,6 +44,7 @@ interface Product {
   info: string;
   date: string; // Store date as a string in YYYY-MM-DD format
   image: string | null;
+  imageExtension?: string; // Add this new optional property
 }
 
 const paymentTypes = [
@@ -183,7 +184,8 @@ export default function ProductPage() {
         // Format date and construct image URL outside the loop
         uniqueId = editingId;
         const dateFormatted = currentProduct.date.split(' ')[0].split('.').join('-');
-        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+        const imageExtension = currentProduct.imageExtension || 'jpg';
+        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.${imageExtension}`;
 
         // Wait for the update to complete before proceeding
         await updateProduct(currentProduct);
@@ -215,8 +217,9 @@ export default function ProductPage() {
         setIsLoading(false);
       } else {
         uniqueId = editingId || uuidv4();
-        let dateFormatted = currentProduct.date.split(' ')[0].split('.').join('-');
-        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.png`;
+        const dateFormatted = currentProduct.date.split(' ')[0].split('.').join('-');
+        const imageExtension = currentProduct.imageExtension || 'jpg';
+        const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.${imageExtension}`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
         if (useToday) {
@@ -326,7 +329,14 @@ export default function ProductPage() {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const imageDataUrl = e.target?.result as string;
-        const updatedProduct = { ...currentProduct, image: imageDataUrl };
+        const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        console.log('Selected image:', file.name, fileExtension);
+        
+        const updatedProduct = { 
+          ...currentProduct, 
+          image: imageDataUrl,
+          imageExtension: fileExtension
+        };
         setCurrentProduct(updatedProduct);
       };
       reader.readAsDataURL(file);

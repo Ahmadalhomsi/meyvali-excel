@@ -41,6 +41,7 @@ interface Payment {
   info: string;
   date: string; // Store date as a string in YYYY-MM-DD format
   image: string | null;
+  imageExtension?: string; // Add this new optional property
 }
 
 const paymentTypes = [
@@ -158,7 +159,8 @@ export default function Payment_Calculation() {
         // Format date and construct image URL outside the loop
         uniqueId = editingId;
         const dateFormatted = currentPayment.date.split(' ')[0].split('.').join('-');
-        const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;
+        const imageExtension = currentPayment.imageExtension || 'jpg';
+        const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.${imageExtension}`;
 
         await updatePayment(currentPayment);
 
@@ -191,8 +193,9 @@ export default function Payment_Calculation() {
         setIsLoading(false);
       } else {
         uniqueId = editingId || uuidv4();
-        let dateFormatted = currentPayment.date.split(' ')[0].split('.').join('-');
-        const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.png`;
+        const dateFormatted = currentPayment.date.split(' ')[0].split('.').join('-');
+        const imageExtension = currentPayment.imageExtension || 'jpg';
+        const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.${imageExtension}`;
         const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
         if (useToday) {
