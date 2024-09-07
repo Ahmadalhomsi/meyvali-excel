@@ -22,7 +22,7 @@ export async function POST(req) {
       },
       body: JSON.stringify({
         email_address: email,
-        redirect_url: `${serverBaseUrl}/signup`, // Redirect URL after accepting invite
+        redirect_url: `${serverBaseUrl}/sign-up`, // Redirect URL after accepting invite
       }),
     });
 
