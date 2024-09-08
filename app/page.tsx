@@ -38,8 +38,8 @@ interface Product {
   id: string;
   category: string | null;
   name: string;
-  quantity: number;
-  price: number;
+  quantity: number | string | null;
+  price: number | string | null;
   paymentType: string | null;
   info: string;
   date: string; // Store date as a string in YYYY-MM-DD format
@@ -60,8 +60,8 @@ export default function ProductPage() {
     id: uuidv4(),
     category: null,
     name: '',
-    quantity: 0,
-    price: 0,
+    quantity: null,
+    price: null,
     paymentType: null,
     info: '',
     date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm'), // Initialize date in Turkish format
@@ -148,6 +148,16 @@ export default function ProductPage() {
       const userName = user?.username || user?.fullName || user?.emailAddresses[0].emailAddress;
 
       console.log('User name:', userName);
+
+
+      if (product.price === null || product.price === "") {
+        product.price = 0;
+      }
+
+      if (product.quantity === null || product.quantity === "") {
+        product.quantity = 0;
+      }
+
 
 
       if (!userName) {
@@ -251,8 +261,8 @@ export default function ProductPage() {
         id: uniqueId,
         category: null,
         name: '',
-        quantity: 0,
-        price: 0,
+        quantity: '',
+        price: '',
         paymentType: null,
         info: '',
         date: currentProduct.date,

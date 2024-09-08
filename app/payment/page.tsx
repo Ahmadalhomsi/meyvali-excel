@@ -34,7 +34,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface Payment {
   id: string;
-  price: number;
+  price: number | string | null;
   billNo: string;
   name: string;
   paymentType: string | null;
@@ -54,7 +54,7 @@ export default function Payment_Calculation() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [currentPayment, setCurrentPayment] = useState<Payment>({
     id: uuidv4(),
-    price: 0,
+    price: null,
     billNo: '',
     name: '',
     paymentType: null,
@@ -128,6 +128,11 @@ export default function Payment_Calculation() {
       const userName = user?.username || user?.fullName || user?.emailAddresses[0].emailAddress;
 
       console.log('User name:', userName);
+
+
+      if (payment.price === null || payment.price === "") {
+        payment.price = 0;
+      }
 
 
       if (!userName) {
@@ -224,7 +229,7 @@ export default function Payment_Calculation() {
 
       setCurrentPayment({
         id: uniqueId,
-        price: 0,
+        price: '',
         billNo: '',
         name: '',
         paymentType: null,

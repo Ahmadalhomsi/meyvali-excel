@@ -25,14 +25,12 @@ import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
-import { v4 as uuidv4 } from 'uuid';
 
 interface TotalCash {
-    id: string;
-    remaining: string;
-    creditCard: string;
-    TRQcode: string;
-    eBill: string;
+    remaining: string | null;
+    creditCard: string | null;
+    TRQcode: string | null;
+    eBill: string | null;
     info: string;
     date: string;
 }
@@ -49,11 +47,10 @@ interface DailyData {
 
 export default function End_Of_Day() {
     const [totalCash, setTotalCash] = useState<TotalCash>({
-        id: uuidv4(),
-        remaining: '0',
-        creditCard: '0',
-        TRQcode: '0',
-        eBill: '0',
+        remaining: null,
+        creditCard: null,
+        TRQcode: null,
+        eBill: null,
         info: '',
         date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm')
     });
@@ -93,7 +90,7 @@ export default function End_Of_Day() {
 
     const calculateTotalCash = () => {
         return ['remaining', 'creditCard', 'TRQcode', 'eBill'].reduce((total, field) => {
-            const value = parseFloat(totalCash[field as keyof TotalCash]);
+            const value = parseFloat(totalCash[field as keyof TotalCash] ?? '0');
             return total + (isNaN(value) ? 0 : value);
         }, 0);
     };
@@ -154,7 +151,6 @@ export default function End_Of_Day() {
                 totalCash: processedTotalCash,
                 imageBuffer: image,
                 date: dayjs().format('DD.MM.YYYY HH:mm'),
-                id: totalCash.id || uuidv4(),
                 userName
             });
             if (response.status === 200) {
@@ -320,7 +316,7 @@ export default function End_Of_Day() {
                             sx={{ marginTop: '10px', marginLeft: '5px' }}
                         />
                     </Grid>
-                    
+
                 </Grid>
             </form>
 
