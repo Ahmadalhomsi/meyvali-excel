@@ -84,7 +84,7 @@ import axios from 'axios';
 
 export async function PUT(request: NextRequest) {
     try {
-        const { id, date, totalCash, imageBuffer, userName } = await request.json();
+        const { date, totalCash, imageBuffer, userName } = await request.json();
 
         const fileName = 'meyvali-excel.xlsx';
         const publicDir = path.join(process.cwd(), 'public');
@@ -114,7 +114,7 @@ export async function PUT(request: NextRequest) {
 
         // If the worksheet is empty, add the template headers and set column widths
         if (worksheet.actualRowCount === 0) {
-            const headers = ['Tarih', 'Kalan', 'Kredi Kartı', 'Kare Kod', 'e-Fatura', 'Ek Bilgi', 'Fotoğraf', 'ID', 'Kullanıcı'];
+            const headers = ['Tarih', 'Kalan', 'Kredi Kartı', 'Kare Kod', 'e-Fatura', 'Ek Bilgi', 'Fotoğraf', 'Kullanıcı'];
             worksheet.addRow(headers);
 
             // Adjust column widths
@@ -126,7 +126,6 @@ export async function PUT(request: NextRequest) {
                 { width: 10 }, // e-Fatura
                 { width: 25 }, // Ek Bilgi
                 { width: 15 }, // Fotoğraf
-                { width: 5 }, // ID
                 { width: 20 }  // Kullanıcı
             ];
         }
@@ -134,7 +133,11 @@ export async function PUT(request: NextRequest) {
         // Find the row with the given ID or add a new row
         let rowToUpdate: ExcelJS.Row | undefined;
         worksheet.eachRow((row, rowNumber) => {
-            if (row.getCell(8).value === id) {
+            console.log("-------------------------------------");
+
+            console.log((row.getCell(1).value + "").split(' ')[0], "+++++", date.split(' ')[0]);
+
+            if ((row.getCell(1).value + "").split(' ')[0] === date.split(' ')[0]) {
                 rowToUpdate = row;
             }
         });
@@ -148,7 +151,7 @@ export async function PUT(request: NextRequest) {
             rowToUpdate.getCell(5).value = totalCash.eBill;
             rowToUpdate.getCell(6).value = totalCash.info;
 
-            rowToUpdate.getCell(9).value = userName; // Assuming image is in cell G (column 7) so userName is in 8th column
+            rowToUpdate.getCell(8).value = userName;
         } else {
             // Insert new row if ID not found
             const newRow = [
@@ -159,7 +162,6 @@ export async function PUT(request: NextRequest) {
                 totalCash.eBill,
                 totalCash.info,
                 "", // Placeholder for image
-                id,
                 userName
             ];
             rowToUpdate = worksheet.addRow(newRow);
