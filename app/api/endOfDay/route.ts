@@ -91,8 +91,8 @@ export async function PUT(request: NextRequest) {
         const uploadsDir = path.join(publicDir, 'uploads');
         const filePath = path.join(publicDir, fileName);
 
-        console.log(date);
-        console.log(totalCash);
+        // console.log(date);
+        // console.log(totalCash);
 
         const dateOnly = date.split(' ')[0]; // Output: "DD.MM.YYYY"
 
@@ -133,11 +133,7 @@ export async function PUT(request: NextRequest) {
         // Find the row with the given ID or add a new row
         let rowToUpdate: ExcelJS.Row | undefined;
         worksheet.eachRow((row, rowNumber) => {
-            console.log("-------------------------------------");
-
-            console.log((row.getCell(1).value + "").split(' ')[0], "+++++", date.split(' ')[0]);
-
-            if ((row.getCell(1).value + "").split(' ')[0] === date.split(' ')[0]) {
+            if ((row.getCell(1).value + "").split(' ')[0] === dateOnly) {
                 rowToUpdate = row;
             }
         });
