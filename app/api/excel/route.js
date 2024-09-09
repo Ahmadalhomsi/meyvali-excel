@@ -56,3 +56,45 @@ export async function POST(req) {
         return NextResponse.json({ error: 'Error uploading file' }, { status: 500 });
     }
 }
+
+import ExcelJS from 'exceljs';
+import dayjs from 'dayjs';
+
+export async function PUT(request) {
+    try {
+        const { date } = await request.json();
+        const selectedDate = dayjs(date);
+
+        const filePath = path.join(process.cwd(), 'public', 'meyvali-excel.xlsx');
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+
+        const worksheet = workbook.getWorksheet(1);
+        const daysInMonth = selectedDate.daysInMonth();
+
+        // Function to update dates in a range of rows
+        const updateDatesInRange = (startRow, endRow) => {
+            for (let i = startRow; i <= endRow && (i - startRow + 1) <= daysInMonth; i++) {
+                const cellDate = selectedDate.date(i - startRow + 1);
+                worksheet.getCell(`A${i}`).value = cellDate.format('DD.MM.YYYY');
+            }
+            // Clear any remaining cells if the month ends before the last row
+            for (let i = startRow + daysInMonth; i <= endRow; i++) {
+                worksheet.getCell(`A${i}`).value = null;
+            }
+        };
+
+        // Update rows 2-32
+        updateDatesInRange(2, 32);
+
+        // Update rows 34-44
+        updateDatesInRange(34, 64);
+
+        await workbook.xlsx.writeFile(filePath);
+
+        return NextResponse.json({ message: 'Dates updated successfully' }, { status: 200 });
+    } catch (error) {
+        console.error('Error updating Excel file:', error);
+        return NextResponse.json({ error: 'Failed to update dates' }, { status: 500 });
+    }
+}

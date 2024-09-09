@@ -14,12 +14,19 @@ import {
     ImageList,
     ImageListItem,
     ImageListItemBar,
+    TextField,
 } from '@mui/material';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import CategoriesManagement from './CategoriesManagement';
 import ColumnsManagement from './ColumnsManagement';
 import UserManagement from './UsersManagement';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import 'dayjs/locale/tr'; // Ensure Day.js Turkish locale is loaded
+
+
 
 
 const FileManagementPage = () => {
@@ -28,6 +35,8 @@ const FileManagementPage = () => {
     const [isDeleting, setIsDeleting] = useState(false);
     const [images, setImages] = useState([]);
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [isUpdatingDates, setIsUpdatingDates] = useState(false);
 
     useEffect(() => {
         fetchImages();
@@ -138,6 +147,28 @@ const FileManagementPage = () => {
         }
     };
 
+    const handleUpdateDates = async () => {
+        if (!selectedDate) {
+            toast.error('Lütfen bir tarih seçin.');
+            return;
+        }
+
+        setIsUpdatingDates(true);
+        try {
+            const response = await axios.put('/api/excel', { date: selectedDate });
+            if (response.status === 200) {
+                toast.success('Tarihler başarıyla güncellendi.');
+            } else {
+                throw new Error('Tarih güncelleme başarısız.');
+            }
+        } catch (error) {
+            console.log('Error updating dates:', error);
+            toast.error('Tarihler güncellenirken bir hata oluştu.');
+        } finally {
+            setIsUpdatingDates(false);
+        }
+    };
+
     return (
         <Container>
             <Typography variant="h4" gutterBottom>
@@ -173,6 +204,36 @@ const FileManagementPage = () => {
                             {isReplacing ? 'DEĞİŞTİRİLİYOR...' : 'DEĞİŞTİR'}
                         </Button>
                         {(isDownloading || isReplacing) && (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                <CircularProgress size={24} />
+                            </Box>
+                        )}
+                    </Box>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                    <Box sx={{ border: 1, borderColor: 'grey.300', p: 2, borderRadius: 1 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Tarih Güncelleme
+                        </Typography>
+                        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="tr">
+                            <DatePicker
+                                views={['year', 'month']}
+                                label="Ay ve Yıl Seçin"
+                                value={selectedDate}
+                                onChange={(newValue: any) => setSelectedDate(newValue)}
+                            />
+                        </LocalizationProvider>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleUpdateDates}
+                            disabled={isUpdatingDates || !selectedDate}
+                            sx={{ mt: 2, ml: 2 }}
+                        >
+                            {isUpdatingDates ? 'GÜNCELLENİYOR...' : 'TARİHLERİ GÜNCELLE'}
+                        </Button>
+                        {isUpdatingDates && (
                             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                                 <CircularProgress size={24} />
                             </Box>
