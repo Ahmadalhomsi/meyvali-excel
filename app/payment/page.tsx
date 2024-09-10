@@ -31,6 +31,7 @@ import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
 import { serverBaseUrl } from '@/components/serverConfig';
 import { v4 as uuidv4 } from 'uuid';
+import { selectedDate, selectedUseToday, setSelectedDate, setSelectedUseToday } from '@/components/selectedDate';
 
 interface Payment {
   id: string;
@@ -70,6 +71,19 @@ export default function Payment_Calculation() {
 
   useEffect(() => {
     fetchTodayPayments();
+    console.log("Selected Date:", selectedDate);
+    console.log("Selected Use Today:", selectedUseToday);
+
+    if (selectedUseToday) {
+      setUseToday(true);
+    }
+    else {
+      if (selectedDate) {
+        setUseToday(false);
+        currentPayment.date = selectedDate
+      }
+    }
+
   }, []);
 
   const fetchTodayPayments = async (date?: any) => {
@@ -265,6 +279,7 @@ export default function Payment_Calculation() {
   };
 
   const handleCheckboxChange = () => {
+    setSelectedUseToday(!selectedUseToday);
     setUseToday(!useToday);
     if (!useToday) {
       setCurrentPayment({ ...currentPayment, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date
@@ -273,6 +288,7 @@ export default function Payment_Calculation() {
   };
 
   const handleDateChange = (newValue: dayjs.Dayjs | null) => {
+    setSelectedDate(newValue);
     let newDate
     if (useToday) {
       newDate = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');

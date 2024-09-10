@@ -31,6 +31,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import { serverBaseUrl } from '@/components/serverConfig';
 import { useUser } from "@clerk/nextjs";
+import { selectedDate, selectedUseToday, setSelectedDate, setSelectedUseToday } from '@/components/selectedDate';
 
 
 // Define the product type
@@ -79,6 +80,16 @@ export default function ProductPage() {
   useEffect(() => {
     fetchTodayProducts();
     fetchCategories();
+
+    if (selectedUseToday) {
+      setUseToday(true);
+    }
+    else {
+      if (selectedDate) {
+        setUseToday(false);
+        currentProduct.date = selectedDate
+      }
+    }
   }, []);
 
   const fetchCategories = async () => {
@@ -295,6 +306,7 @@ export default function ProductPage() {
   };
 
   const handleCheckboxChange = () => {
+    setSelectedUseToday(!selectedUseToday);
     setUseToday(!useToday);
     if (!useToday) {
       setCurrentProduct({ ...currentProduct, date: dayjs().locale('tr').format('DD.MM.YYYY') });
@@ -303,6 +315,7 @@ export default function ProductPage() {
   };
 
   const handleDateChange = (newValue: dayjs.Dayjs | null) => {
+    setSelectedDate(newValue);
     let newDate
     if (useToday) {
       newDate = dayjs().locale('tr').format('DD.MM.YYYY HH:mm');

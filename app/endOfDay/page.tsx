@@ -25,6 +25,7 @@ import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useUser } from '@clerk/nextjs';
+import { selectedDate, selectedUseToday, setSelectedDate, setSelectedUseToday } from '@/components/selectedDate';
 
 interface TotalCash {
     remaining: string | null;
@@ -55,9 +56,7 @@ export default function End_Of_Day() {
         date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm')
     });
     const [useToday, setUseToday] = useState<boolean>(true); // Checkbox state
-
     const [isLoading, setIsLoading] = useState(false);
-
     const [dailyData, setDailyData] = useState<DailyData>({
         // remaining: 0,
         // creditCard: 0,
@@ -66,6 +65,23 @@ export default function End_Of_Day() {
         paketAverage: 0,
         date: dayjs().locale('tr').format('DD.MM.YYYY HH:mm')
     });
+
+    useEffect(() => {
+        console.log("Selected Date:", selectedDate);
+        console.log("Selected Use Today:", selectedUseToday);
+
+        if (selectedUseToday) {
+            setUseToday(true);
+        }
+        else {
+            if (selectedDate) {
+                setUseToday(false);
+                totalCash.date = selectedDate
+            }
+        }
+
+    }, []);
+
 
     const handleInputChange = (
         e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -78,6 +94,7 @@ export default function End_Of_Day() {
     };
 
     const handleCheckboxChange = () => {
+        setSelectedUseToday(!selectedUseToday);
         setUseToday(!useToday);
         if (!useToday) {
             setTotalCash({ ...totalCash, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date
@@ -150,7 +167,7 @@ export default function End_Of_Day() {
             const response = await axios.put('/api/endOfDay', {
                 totalCash: processedTotalCash,
                 imageBuffer: image,
-                date: dayjs().format('DD.MM.YYYY HH:mm'),
+                date: totalCash.date,
                 userName
             });
             if (response.status === 200) {
@@ -291,6 +308,7 @@ export default function End_Of_Day() {
                                     defaultValue={dayjs().locale('tr')}
                                     value={dayjs(totalCash.date, 'DD.MM.YYYY')}
                                     onChange={(newValue) => {
+                                        setSelectedDate(newValue);
                                         setTotalCash(prev => ({
                                             ...prev,
                                             date: newValue ? newValue.format('DD.MM.YYYY') : prev.date
