@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Next.js Project
 
-## Getting Started
+This is a Next.js project that involves various API routes and front-end functionalities related to managing categories, columns, users, payments, and other data types.
 
-First, run the development server:
+## Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Next.js Project](#nextjs-project)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [Categories](#categories)
+    - [Clerk Users](#clerk-users)
+    - [Columns](#columns)
+    - [Payments](#payments)
+    - [Products](#products)
+    - [Image Management](#image-management)
+  - [Deployment](#deployment)
+    - [Vps Server Specs:](#vps-server-specs)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/Ahmadalhomsi/meyvali-excel.git
+    cd your-repository
+    ```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+2. Install dependencies:
+    ```bash
+    npm install
+    ```
 
-## Learn More
+3. Run the development server:
+    ```bash
+    npm run dev
+    ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Open [http://localhost:3000](http://localhost:3000) in your browser to view the project.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### Categories
 
-## Deploy on Vercel
+- **GET `/api/categories`**: Fetches the list of categories from the `categories.txt` file.
+- **POST `/api/categories`**: Adds a new category to the list.
+- **DELETE `/api/categories`**: Removes a category from the list.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Clerk Users
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- **GET `/api/clerk-users`**: Fetches the list of users from Clerk.
+- **POST `/api/clerk-users`**: Updates the role of a user in Clerk.
+
+### Columns
+
+- **GET `/api/columns`**: Fetches column information for a given page.
+- **POST `/api/columns`**: Adds a column to the page.
+- **PUT `/api/columns`**: Updates a column name or letter.
+- **DELETE `/api/columns`**: Deletes a column from the page.
+
+### Payments
+
+- **GET `/api/payments`**: Retrieves the list of payments filtered by date.
+- **PUT `/api/payments`**: Updates payment details including product, price, and image.
+- **DELETE `/api/payments`**: Deletes a payment and optionally its associated image.
+  
+### Products
+
+- **GET `/api/products`**: Retrieves the list of products filtered by date.
+- **PUT `/api/products`**: Updates products details including product, price, and image.
+- **DELETE `/api/products`**: Deletes a products and optionally its associated image.
+
+### Image Management
+
+- **GET `/api/images`**: Fetches the list of uploaded images.
+- **POST `/api/images`**: Deletes selected images.
+
+Images are stored in the `public/uploads` directory. Each image is managed via API routes and can be uploaded, retrieved, or deleted.
+
+## Deployment
+
+I recommend for this project to be deployed on:
+
+- **VPS Server `(What I Use)`**
+- **Serverless Server (Storing Images Will Not Work)**
+
+### Vps Server Specs:
+
+- 1 V CPU
+- 2 GB RAM
+- 20 GB SSD
+
