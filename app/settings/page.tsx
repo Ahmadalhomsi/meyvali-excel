@@ -25,6 +25,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/tr'; // Ensure Day.js Turkish locale is loaded
+import { useUser } from '@clerk/nextjs';
 
 
 
@@ -37,6 +38,21 @@ const FileManagementPage = () => {
     const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [isUpdatingDates, setIsUpdatingDates] = useState(false);
+
+    const { user } = useUser();
+
+    const isAdmin = user?.publicMetadata?.role === 'admin';
+
+    if (!isAdmin) {
+        return (
+            <Container>
+                <Typography variant="h4" gutterBottom>
+                    Bu sayfayı görüntüleme yetkiniz yok.
+                </Typography>
+            </Container>
+        );
+    }
+
 
     useEffect(() => {
         fetchImages();
