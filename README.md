@@ -6,7 +6,9 @@ This is a Next.js project that involves various API routes and front-end functio
 
 - [Next.js Project](#nextjs-project)
   - [Table of Contents](#table-of-contents)
+  - [Technologies Used](#technologies-used)
   - [Installation](#installation)
+  - [Routes](#routes)
     - [Categories](#categories)
     - [Clerk Users](#clerk-users)
     - [Columns](#columns)
@@ -15,6 +17,21 @@ This is a Next.js project that involves various API routes and front-end functio
     - [Image Management](#image-management)
   - [Deployment](#deployment)
     - [Vps Server Specs:](#vps-server-specs)
+
+
+## Technologies Used
+
+- **Next.js**: For both front-end rendering and back-end API routes.
+- **React**: Client-side logic and UI components.
+- **Material UI**: For styling, components like DataGrid, Autocomplete, and forms.
+- **Clerk**: User management, authentication, and role-based access control.
+- **ExcelJS**: For handling Excel file operations, such as reading and writing payment data.
+- **Axios**: For handling HTTP requests in the front-end.
+- **Day.js**: For date management.
+- **Sharp**: For image processing and compression.
+- **Node.js**: For file system operations and API handling.
+- **TypeScript**: Used in certain parts of the project to ensure type safety.
+- **ExpressJS**: Used for hosting the images.
 
 ## Installation
 
@@ -36,7 +53,7 @@ This is a Next.js project that involves various API routes and front-end functio
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser to view the project.
 
-
+## Routes
 ### Categories
 
 - **GET `/api/categories`**: Fetches the list of categories from the `categories.txt` file.
