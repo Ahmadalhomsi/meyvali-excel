@@ -185,6 +185,14 @@ const FileManagementPage = () => {
         }
     };
 
+    const handleImageClick = (image : any, event : any) => {
+        // Prevent the click from triggering the checkbox
+        event.stopPropagation();
+        // Open the image in a new tab
+        window.open(`/uploads/${image}`, '_blank');
+    };
+
+
     return (
         <Container>
             <Typography variant="h4" gutterBottom>
@@ -288,28 +296,43 @@ const FileManagementPage = () => {
                             }
                             label="Tümü Seç"
                         />
-                        <ImageList sx={{ width: '100%', height: 450 }} cols={3} rowHeight={164}>
+                        <ImageList sx={{ width: '100%', height: 450 }} cols={6} rowHeight={100}>
                             {images.map((image) => (
                                 <ImageListItem key={image}>
                                     <img
-                                        src={`/uploads/${image}`}
+                                        src={`/uploads/${image}?w=100&h=100&fit=crop&auto=format&q=80`}
                                         alt={image}
                                         loading="lazy"
-                                        style={{ opacity: selectedImages.includes(image) ? 0.5 : 1 }}
+                                        onClick={(event) => handleImageClick(image, event)}
+                                        style={{
+                                            opacity: selectedImages.includes(image) ? 0.5 : 1,
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            cursor: 'pointer'
+                                        }}
                                     />
                                     <ImageListItemBar
                                         title={image}
                                         actionIcon={
-                                            <FormControlLabel
-                                                control={
-                                                    <Checkbox
-                                                        checked={selectedImages.includes(image)}
-                                                        onChange={() => handleImageSelect(image)}
-                                                    />
-                                                }
-                                                label="Seç"
+                                            <Checkbox
+                                                checked={selectedImages.includes(image)}
+                                                onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    handleImageSelect(image);
+                                                }}
+                                                sx={{ color: 'rgba(255, 255, 255, 0.54)' }}
+                                                onClick={(e) => e.stopPropagation()}
                                             />
                                         }
+                                        sx={{
+                                            '.MuiImageListItemBar-title': {
+                                                fontSize: '0.7rem',
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }
+                                        }}
                                     />
                                 </ImageListItem>
                             ))}

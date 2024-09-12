@@ -144,13 +144,13 @@ export async function PUT(request: NextRequest) {
             const newRow = [date, category, name, quantity, price, paymentType, info, , id, userName];
             rowToUpdate = worksheet.addRow(newRow);
         }
-        
+
         const sharp = require('sharp');
 
 
         // Handle image update
         if (image && typeof image === 'string' && image.startsWith('data:image/')) {
- 
+
             const uniqueId = id;
             const dateFormatted = dateOnly.replace(/\./g, '-');
             const match = image.match(/^data:image\/(\w+);base64,/);
@@ -163,6 +163,18 @@ export async function PUT(request: NextRequest) {
 
             const imageFileName = `${dateFormatted}-${uniqueId}-Urunler.${imageType}`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
+
+            // Delete existing images with the same name but different extensions
+            const possibleExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            for (const ext of possibleExtensions) {
+                const oldImagePath = path.join(uploadsDir, `${dateFormatted}-${uniqueId}-Urunler.${ext}`);
+                try {
+                    await fs.unlink(oldImagePath);
+                    console.log(`Deleted old image: ${oldImagePath}`);
+                } catch (error) {
+                    // Ignore errors if the file doesn't exist
+                }
+            }
 
             // Convert base64 to buffer
             const buffer = Buffer.from(image.split(',')[1], 'base64');

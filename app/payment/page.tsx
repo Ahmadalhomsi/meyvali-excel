@@ -86,7 +86,7 @@ export default function Payment_Calculation() {
 
   }, []);
 
-  const fetchTodayPayments = async (date?: any) => {
+  const fetchTodayPayments = async (date?: any) => {  
     const today = date || dayjs().format('DD.MM.YYYY HH:mm');
     setIsLoading(true);
     try {
@@ -325,8 +325,15 @@ export default function Payment_Calculation() {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const imageDataUrl = e.target?.result as string;
-        const updatedPayment = { ...currentPayment, image: imageDataUrl };
-        setCurrentPayment(updatedPayment);
+        const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        console.log('Selected image:', file.name, fileExtension);
+
+        const updatedProduct = {
+          ...currentPayment,
+          image: imageDataUrl,
+          imageExtension: fileExtension
+        };
+        setCurrentPayment(updatedProduct);
       };
       reader.readAsDataURL(file);
     }

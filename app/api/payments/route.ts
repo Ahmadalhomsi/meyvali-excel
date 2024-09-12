@@ -157,6 +157,18 @@ export async function PUT(request: NextRequest) {
             const imageFileName = `${dateFormatted}-${uniqueId}-Odemeler.${imageType}`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 
+            // Delete existing images with the same name but different extensions
+            const possibleExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            for (const ext of possibleExtensions) {
+                const oldImagePath = path.join(uploadsDir, `${dateFormatted}-${uniqueId}-Odemeler.${ext}`);
+                try {
+                    await fs.unlink(oldImagePath);
+                    console.log(`Deleted old image: ${oldImagePath}`);
+                } catch (error) {
+                    // Ignore errors if the file doesn't exist
+                }
+            }
+
             // Convert base64 to buffer
             const buffer = Buffer.from(image.split(',')[1], 'base64');
 
@@ -168,13 +180,13 @@ export async function PUT(request: NextRequest) {
             const imageUrl = `${serverBaseUrl}/uploads/${imageFileName}`;
 
             // Update the Excel file with the new image link
-            const imageCell = rowToUpdate.getCell(8);
+            const imageCell = rowToUpdate.getCell(7);
             imageCell.value = { text: 'Fotoğraf Linki', hyperlink: imageUrl };
             imageCell.font = { color: { argb: 'FF0000FF' }, underline: true };
 
             console.log(`Updated image for date: ${date}`);
         } else {
-            console.log('Image is not a valid base64-encoded string.');
+            console.log('Image is not included (Backend).');
         }
 
         // Insert new row if ID not found

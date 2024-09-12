@@ -191,14 +191,15 @@ export async function PUT(request: NextRequest) {
             const imageFileName = `${dateFormatted}-Gun_Sonu.${imageType}`;
             const imageFilePath = path.join(uploadsDir, imageFileName);
 
-            // Check if an old image exists and delete it
-            try {
-                await fs.access(imageFilePath);
-                await fs.unlink(imageFilePath);
-                console.log(`Deleted existing image for date: ${date}`);
-            } catch (err: any) {
-                if (err.code !== 'ENOENT') {
-                    console.warn(`Error checking/deleting existing image: ${err.message}`);
+            // Delete existing images with the same name but different extensions
+            const possibleExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+            for (const ext of possibleExtensions) {
+                const oldImagePath = path.join(uploadsDir, `${dateFormatted}-Gun_Sonu.${ext}`);
+                try {
+                    await fs.unlink(oldImagePath);
+                    console.log(`Deleted old image: ${oldImagePath}`);
+                } catch (error) {
+                    // Ignore errors if the file doesn't exist
                 }
             }
 
