@@ -78,18 +78,19 @@ export default function ProductPage() {
 
 
   useEffect(() => {
-    fetchTodayProducts();
     fetchCategories();
-
     if (selectedUseToday) {
       setUseToday(true);
+      fetchTodayProducts(dayjs().locale('tr').format('DD.MM.YYYY HH:mm'));
     }
     else {
       if (selectedDate) {
         setUseToday(false);
-        currentProduct.date = selectedDate
+        currentProduct.date = selectedDate.format('DD.MM.YYYY');
       }
+      fetchTodayProducts(selectedDate ? selectedDate.format('DD.MM.YYYY') : undefined);
     }
+
   }, []);
 
   const fetchCategories = async () => {
@@ -306,7 +307,8 @@ export default function ProductPage() {
   };
 
   const handleCheckboxChange = () => {
-    setSelectedUseToday(!selectedUseToday);
+    setSelectedUseToday(!useToday);
+
     setUseToday(!useToday);
     if (!useToday) {
       setCurrentProduct({ ...currentProduct, date: dayjs().locale('tr').format('DD.MM.YYYY') });

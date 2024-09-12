@@ -70,23 +70,23 @@ export default function Payment_Calculation() {
   const [isDeletingPhoto, setIsDeletingPhoto] = useState(false);
 
   useEffect(() => {
-    fetchTodayPayments();
-    console.log("Selected Date:", selectedDate);
-    console.log("Selected Use Today:", selectedUseToday);
 
     if (selectedUseToday) {
       setUseToday(true);
+      fetchTodayPayments(dayjs().locale('tr').format('DD.MM.YYYY HH:mm'));
     }
     else {
       if (selectedDate) {
         setUseToday(false);
-        currentPayment.date = selectedDate
+        currentPayment.date = selectedDate.format('DD.MM.YYYY');
       }
+      fetchTodayPayments(selectedDate ? selectedDate.format('DD.MM.YYYY') : undefined);
     }
+
 
   }, []);
 
-  const fetchTodayPayments = async (date?: any) => {  
+  const fetchTodayPayments = async (date?: any) => {
     const today = date || dayjs().format('DD.MM.YYYY HH:mm');
     setIsLoading(true);
     try {
@@ -152,6 +152,9 @@ export default function Payment_Calculation() {
       if (!userName) {
         toast.error('Kullanıcı adı alınamadı. Lütfen tekrar deneyin.');
       }
+
+      console.log("Payment:", payment);
+
 
       // Pass the userName along with the product data to the backend
       await axios.put(`/api/payments/`, {
@@ -279,7 +282,7 @@ export default function Payment_Calculation() {
   };
 
   const handleCheckboxChange = () => {
-    setSelectedUseToday(!selectedUseToday);
+    setSelectedUseToday(!useToday);
     setUseToday(!useToday);
     if (!useToday) {
       setCurrentPayment({ ...currentPayment, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date

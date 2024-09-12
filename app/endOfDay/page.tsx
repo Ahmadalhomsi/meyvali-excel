@@ -67,8 +67,6 @@ export default function End_Of_Day() {
     });
 
     useEffect(() => {
-        console.log("Selected Date:", selectedDate);
-        console.log("Selected Use Today:", selectedUseToday);
 
         if (selectedUseToday) {
             setUseToday(true);
@@ -76,7 +74,7 @@ export default function End_Of_Day() {
         else {
             if (selectedDate) {
                 setUseToday(false);
-                totalCash.date = selectedDate
+                totalCash.date = selectedDate.format('DD.MM.YYYY');
             }
         }
 
@@ -94,7 +92,7 @@ export default function End_Of_Day() {
     };
 
     const handleCheckboxChange = () => {
-        setSelectedUseToday(!selectedUseToday);
+        setSelectedUseToday(!useToday);
         setUseToday(!useToday);
         if (!useToday) {
             setTotalCash({ ...totalCash, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date
