@@ -102,6 +102,17 @@ export default function End_Of_Day() {
                         date: response.data.totalCash[0].Tarih
                     });
                 }
+                else {
+                    console.log("is null");
+                    setTotalCash({
+                        remaining: null,
+                        creditCard: null,
+                        TRQcode: null,
+                        eBill: null,
+                        info: '',
+                        date: date ? (date + "").split(' ')[0] : dayjs().locale('tr').format('DD.MM.YYYY')
+                    });
+                }
             }
         } catch (error) {
             console.log('No total cash fetched:', error);
