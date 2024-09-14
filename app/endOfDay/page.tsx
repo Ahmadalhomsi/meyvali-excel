@@ -20,7 +20,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/tr'; // Import the Turkish locale
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -67,6 +67,7 @@ export default function End_Of_Day() {
     });
 
     useEffect(() => {
+        fetchTodayTotalCash(totalCash.date);
 
         if (selectedUseToday) {
             setUseToday(true);
@@ -79,6 +80,35 @@ export default function End_Of_Day() {
         }
 
     }, []);
+
+    const fetchTodayTotalCash = async (date?: string | Dayjs | null) => {
+        console.log('Fetching today total cash...');
+        console.log('Selected date:', date);
+
+
+        setIsLoading(true);
+        try {
+            const response = await axios.get(`/api/endOfDay?date=${(date + "").split(' ')[0]}`);
+            if (response.status === 200) {
+                if (response.data.totalCash.length > 0) {
+                    console.log("is not null");
+                    console.log('Total cash fetched:', response.data.totalCash[0]);
+                    setTotalCash({
+                        remaining: response.data.totalCash[0].Kalan,
+                        creditCard: response.data.totalCash[0]["Kredi Kartı"],
+                        TRQcode: response.data.totalCash[0]["Kare Kod"],
+                        eBill: response.data.totalCash[0]["e-Fatura"],
+                        info: response.data.totalCash[0]["Ek Bilgi"],
+                        date: response.data.totalCash[0].Tarih
+                    });
+                }
+            }
+        } catch (error) {
+            console.log('No total cash fetched:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
 
     const handleInputChange = (
@@ -97,6 +127,7 @@ export default function End_Of_Day() {
         if (!useToday) {
             setTotalCash({ ...totalCash, date: dayjs().locale('tr').format('DD.MM.YYYY') }); // Set to today's date
         }
+        fetchTodayTotalCash(dayjs().locale('tr').format('DD.MM.YYYY'));
     };
 
     // const calculateTotalPrice = () => {
@@ -116,14 +147,13 @@ export default function End_Of_Day() {
 
 
     const fetchDailyData = async () => {
-        const today = dayjs().format('DD.MM.YYYY HH:mm');
+
         setIsLoading(true);
         try {
-            const response = await axios.get(`/api/endOfDay?date=${today}`);
+            const response = await axios.get(`/api/ciroAndPaket?date=${totalCash.date}`);
             if (response.status === 200) {
                 setDailyData(response.data.dailyData);
-                // Initialize totalCash with the fetched remaining and creditCard values
-                console.log(response.data.dailyData);
+
             }
         } catch (error) {
             console.log('Error fetching daily data:', error);
@@ -200,17 +230,16 @@ export default function End_Of_Day() {
             <Typography variant="h4" gutterBottom>Günün Sonu</Typography>
             <form noValidate autoComplete="off">
                 <Grid container spacing={2}>
-
                     <Grid item xs={6} sm={1.5} md={2}>
                         <div style={{ display: 'flex' }}>
                             <TextField
                                 label="Kalan"
                                 name="remaining"
                                 type="number"
-                                value={totalCash.remaining}
+                                value={totalCash.remaining || ''}
                                 onChange={handleInputChange}
+                                InputLabelProps={{ shrink: true }}
                             />
-
                             <h4 style={{ paddingLeft: 5, fontWeight: 'initial' }}>₺</h4>
                         </div>
                     </Grid>
@@ -221,10 +250,10 @@ export default function End_Of_Day() {
                                 label="Kredi Kartı"
                                 name="creditCard"
                                 type="number"
-                                value={totalCash.creditCard}
+                                value={totalCash.creditCard || ''}
                                 onChange={handleInputChange}
+                                InputLabelProps={{ shrink: true }}
                             />
-
                             <h4 style={{ paddingLeft: 5, fontWeight: 'initial' }}>₺</h4>
                         </div>
                     </Grid>
@@ -235,10 +264,10 @@ export default function End_Of_Day() {
                                 label="Kare Kod"
                                 name="TRQcode"
                                 type="number"
-                                value={totalCash.TRQcode}
+                                value={totalCash.TRQcode || ''}
                                 onChange={handleInputChange}
+                                InputLabelProps={{ shrink: true }}
                             />
-
                             <h4 style={{ paddingLeft: 5, fontWeight: 'initial' }}>₺</h4>
                         </div>
                     </Grid>
@@ -249,10 +278,10 @@ export default function End_Of_Day() {
                                 label="e-Fatura"
                                 name="eBill"
                                 type="number"
-                                value={totalCash.eBill}
+                                value={totalCash.eBill || ''}
                                 onChange={handleInputChange}
+                                InputLabelProps={{ shrink: true }}
                             />
-
                             <h4 style={{ paddingLeft: 5, fontWeight: 'initial' }}>₺</h4>
                         </div>
                     </Grid>
@@ -305,12 +334,13 @@ export default function End_Of_Day() {
                                     views={['year', 'month', 'day']}
                                     defaultValue={dayjs().locale('tr')}
                                     value={dayjs(totalCash.date, 'DD.MM.YYYY')}
-                                    onChange={(newValue) => {
+                                    onChange={async (newValue) => {
                                         setSelectedDate(newValue);
                                         setTotalCash(prev => ({
                                             ...prev,
                                             date: newValue ? newValue.format('DD.MM.YYYY') : prev.date
                                         }));
+                                        await fetchTodayTotalCash(newValue?.format('DD.MM.YYYY'));
                                     }}
                                     disabled={useToday || !(isAdmin || isSupervisor)} // Disables if useToday is true or user is admin/supervisor
                                     sx={{ width: '55%' }}
