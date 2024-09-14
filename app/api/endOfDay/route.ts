@@ -227,7 +227,7 @@ export async function PUT(request: NextRequest) {
 
         Object.entries(paymentTypeColumnMap).forEach(([key, columnLetter]) => {
             const targetCell = worksheet1.getCell(`${columnLetter}${targetRow}`);
-            const value = key === 'Kalan' ? totalCash.remaining : totalCash.creditCard;
+            const value = key === 'Kalan' ? totalCash.remaining : (totalCash.creditCard + totalCash.TRQcode + totalCash.eBill);
             targetCell.value = value;
         });
 
