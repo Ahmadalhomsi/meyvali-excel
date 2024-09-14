@@ -67,8 +67,6 @@ export default function End_Of_Day() {
     });
 
     useEffect(() => {
-        fetchTodayTotalCash(totalCash.date);
-
         if (selectedUseToday) {
             setUseToday(true);
         }
@@ -78,6 +76,10 @@ export default function End_Of_Day() {
                 totalCash.date = selectedDate.format('DD.MM.YYYY');
             }
         }
+
+
+        fetchTodayTotalCash(totalCash.date);
+
 
     }, []);
 
