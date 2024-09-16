@@ -31,7 +31,7 @@ This is a Next.js project that involves various API routes and front-end functio
 - **Sharp**: For image processing and compression.
 - **Node.js**: For file system operations and API handling.
 - **TypeScript**: Used in certain parts of the project to ensure type safety.
-- **ExpressJS**: Used for hosting the images.
+- **ExpressJS**: Used for hosting the images and preventing image cashing..
 
 ## Installation
 
@@ -98,9 +98,9 @@ I recommend for this project to be deployed on:
 - **VPS Server `(What I Use)`**
 - **Serverless Server (Storing Images Will Not Work)**
 
-### Vps Server Specs:
+### VPS Server Specs:
 
-- 1 V CPU
+- 1 vCPU
 - 2 GB RAM
 - 20 GB SSD
 
