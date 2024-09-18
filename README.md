@@ -98,9 +98,14 @@ I recommend for this project to be deployed on:
 - **VPS Server `(What I Use)`**
 - **Serverless Server (Storing Images Will Not Work)**
 
-### VPS Server Specs:
+### VPS Specs:
 
 - 1 vCPU
 - 2 GB RAM
 - 20 GB SSD
+
+### VPS DEPOLYMENT
+After installing node, git and configuring the server you should run the program with process manager like pm2 after running npm i.
+
+
 
