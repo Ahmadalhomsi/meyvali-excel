@@ -39,20 +39,6 @@ const FileManagementPage = () => {
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [isUpdatingDates, setIsUpdatingDates] = useState(false);
 
-    const { user } = useUser();
-
-    const isAdmin = user?.publicMetadata?.role === 'admin';
-
-    if (!isAdmin) {
-        return (
-            <Container>
-                <Typography variant="h4" gutterBottom>
-                    Bu sayfayı görüntüleme yetkiniz yok.
-                </Typography>
-            </Container>
-        );
-    }
-
 
     useEffect(() => {
         fetchImages();

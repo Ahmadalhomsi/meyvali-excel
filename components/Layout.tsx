@@ -36,21 +36,17 @@ const Layout: React.FC<LayoutProps> = ({ children, darkMode, toggleDarkMode }) =
     const [mobileOpen, setMobileOpen] = useState(false);
     const isMobile = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
     const theme = useTheme();
-    const { user } = useUser();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
     };
 
-    const isAdmin = user?.publicMetadata?.role === 'admin';
 
     const menuItems = [
         { label: 'Ürünler', path: '/' },
         { label: 'Ödeme', path: '/payment' },
         { label: 'Gün sonu', path: '/endOfDay' },
-        ...(isAdmin ? [
-            { label: 'Ayarlar', path: '/settings' },
-        ] : []),
+        { label: 'Ayarlar', path: '/settings' },
     ];
 
     const StyledTabs = styled(Tabs)(({ theme }) => ({
