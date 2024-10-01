@@ -96,7 +96,7 @@ Images are stored in the `public/uploads` directory. Each image is managed via A
 I recommend for this project to be deployed on:
 
 - **VPS Server `(What I Use)`**
-- **Serverless Server (Storing Images Will Not Work)**
+- **Serverless Server `(Storing Images Will Not Work)`**
 
 ### VPS Specs:
 
