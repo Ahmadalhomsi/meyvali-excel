@@ -105,7 +105,7 @@ I recommend for this project to be deployed on:
 - 20 GB SSD
 
 ### VPS DEPOLYMENT
-After installing node, git and configuring the server you should run the program with process manager like pm2 after running npm i.
+After installing node, git and configuring the server you should run the program with process manager like pm2 after running npm i and npm run build.
 
 
 
