@@ -107,5 +107,5 @@ I recommend for this project to be deployed on:
 ### VPS DEPOLYMENT
 After installing node, git and configuring the server you should run the program with process manager like pm2 after running npm i and npm run build.
 
-
+`The project that I have deployed on Vercel is just a demo version, not the real version the client that use :)`
 
