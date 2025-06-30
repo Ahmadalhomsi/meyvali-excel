@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
     Container,
     Typography,
@@ -15,7 +15,15 @@ import {
     ImageListItem,
     ImageListItemBar,
     TextField,
+    Pagination,
+    Select,
+    MenuItem,
+    FormControl,
+    InputLabel,
 } from '@mui/material';
+import Image from 'next/image';
+import OptimizedImage from '../../components/OptimizedImage';
+import { useImageManagement } from '../../hooks/useImageManagement';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import CategoriesManagement from './CategoriesManagement';
@@ -33,11 +41,31 @@ import { useUser } from '@clerk/nextjs';
 const FileManagementPage = () => {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isReplacing, setIsReplacing] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [images, setImages] = useState([]);
-    const [selectedImages, setSelectedImages] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [isUpdatingDates, setIsUpdatingDates] = useState(false);
+    
+    // Use the optimized image management hook
+    const {
+        images,
+        filteredImages,
+        paginatedImages,
+        selectedImages,
+        currentPage,
+        totalPages,
+        imagesPerPage,
+        imageFilter,
+        isLoading: isLoadingImages,
+        isDeleting,
+        setImageFilter,
+        handleImageSelect,
+        handleSelectAll,
+        handleSelectAllFiltered,
+        handleClearSelection,
+        handleDeleteImages,
+        fetchImages,
+        handlePageChange,
+        handleImagesPerPageChange,
+    } = useImageManagement({ imagesPerPage: 24 });
 
     const { user } = useUser();
 
@@ -56,17 +84,7 @@ const FileManagementPage = () => {
 
     useEffect(() => {
         fetchImages();
-    }, []);
-
-    const fetchImages = async () => {
-        try {
-            const response = await axios.get('/api/images');
-            setImages(response.data.images);
-        } catch (error) {
-            console.log('Error fetching images:', error);
-            toast.error('Resimler yüklenirken bir hata oluştu.');
-        }
-    };
+    }, [fetchImages]);
 
     const handleDownloadExcel = async () => {
         setIsDownloading(true);
@@ -126,43 +144,6 @@ const FileManagementPage = () => {
         input.click();
     };
 
-
-    const handleImageSelect = (imageName: any) => {
-        setSelectedImages(prev =>
-            prev.includes(imageName)
-                ? prev.filter(name => name !== imageName)
-                : [...prev, imageName]
-        );
-    };
-
-    const handleSelectAll = (event: any) => {
-        if (event.target.checked) {
-            setSelectedImages(images);
-        } else {
-            setSelectedImages([]);
-        }
-    };
-
-    const handleDeleteImages = async () => {
-        if (selectedImages.length === 0) {
-            toast.error('Lütfen silinecek resimleri seçin.');
-            return;
-        }
-
-        setIsDeleting(true);
-        try {
-            await axios.post('/api/images', { images: selectedImages });
-            toast.success('Seçilen resimler başarıyla silindi.');
-            fetchImages(); // Refresh the image list
-            setSelectedImages([]);
-        } catch (error) {
-            console.log('Error deleting images:', error);
-            toast.error('Resimler silinirken bir hata oluştu.');
-        } finally {
-            setIsDeleting(false);
-        }
-    };
-
     const handleUpdateDates = async () => {
         if (!selectedDate) {
             toast.error('Lütfen bir tarih seçin.');
@@ -185,12 +166,12 @@ const FileManagementPage = () => {
         }
     };
 
-    const handleImageClick = (image : any, event : any) => {
+    const handleImageClick = useCallback((image: string, event: React.MouseEvent) => {
         // Prevent the click from triggering the checkbox
         event.stopPropagation();
         // Open the image in a new tab
         window.open(`/uploads/${image}`, '_blank');
-    };
+    }, []);
 
 
     return (
@@ -281,62 +262,133 @@ const FileManagementPage = () => {
                 <Grid item xs={12}>
                     <Box sx={{ border: 1, borderColor: 'grey.300', p: 2, borderRadius: 1, mt: 2 }}>
                         <Typography variant="h6" gutterBottom>
-                            RESİM İŞLEMLERİ
+                            RESİM İŞLEMLERİ ({filteredImages.length} resim)
                         </Typography>
                         <Typography variant="body2" paragraph>
                             Resimlerin konumu: public\uploads\
                         </Typography>
+                        
+                        {/* Filter and Controls */}
+                        <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                            <TextField
+                                label="Resim Ara"
+                                value={imageFilter}
+                                onChange={(e) => setImageFilter(e.target.value)}
+                                size="small"
+                                sx={{ minWidth: 200 }}
+                            />
+                            
+                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                                <InputLabel>Sayfa Başına</InputLabel>
+                                <Select
+                                    value={imagesPerPage}
+                                    onChange={handleImagesPerPageChange}
+                                    label="Sayfa Başına"
+                                >
+                                    <MenuItem value={12}>12</MenuItem>
+                                    <MenuItem value={24}>24</MenuItem>
+                                    <MenuItem value={48}>48</MenuItem>
+                                    <MenuItem value={96}>96</MenuItem>
+                                </Select>
+                            </FormControl>
+                            
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Button size="small" onClick={handleSelectAllFiltered}>
+                                    Tümünü Seç ({filteredImages.length})
+                                </Button>
+                                <Button size="small" onClick={handleClearSelection}>
+                                    Seçimi Temizle
+                                </Button>
+                            </Box>
+                        </Box>
+
+                        {/* Selection Info */}
+                        <Box sx={{ mb: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                {selectedImages.length} resim seçili
+                                {filteredImages.length !== images.length && ` (${filteredImages.length}/${images.length} resim gösteriliyor)`}
+                            </Typography>
+                        </Box>
+
                         <FormControlLabel
                             control={
                                 <Checkbox
-                                    checked={selectedImages.length === images.length}
+                                    checked={selectedImages.length === paginatedImages.length && paginatedImages.length > 0}
                                     onChange={handleSelectAll}
-                                    indeterminate={selectedImages.length > 0 && selectedImages.length < images.length}
+                                    indeterminate={selectedImages.length > 0 && selectedImages.length < paginatedImages.length}
                                 />
                             }
-                            label="Tümü Seç"
+                            label="Bu Sayfadaki Tümü"
                         />
-                        <ImageList sx={{ width: '100%', height: 450 }} cols={6} rowHeight={100}>
-                            {images.map((image) => (
-                                <ImageListItem key={image}>
-                                    <img
-                                        src={`/uploads/${image}?w=100&h=100&fit=crop&auto=format&q=80`}
-                                        alt={image}
-                                        loading="lazy"
-                                        onClick={(event) => handleImageClick(image, event)}
-                                        style={{
-                                            opacity: selectedImages.includes(image) ? 0.5 : 1,
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            cursor: 'pointer'
-                                        }}
-                                    />
-                                    <ImageListItemBar
-                                        title={image}
-                                        actionIcon={
-                                            <Checkbox
-                                                checked={selectedImages.includes(image)}
-                                                onChange={(e) => {
-                                                    e.stopPropagation();
-                                                    handleImageSelect(image);
+
+                        {/* Loading State */}
+                        {isLoadingImages ? (
+                            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                                <CircularProgress />
+                            </Box>
+                        ) : (
+                            <>
+                                {/* Optimized Image Grid */}
+                                <ImageList sx={{ width: '100%', height: 450 }} cols={6} rowHeight={100}>
+                                    {paginatedImages.map((image: string) => (
+                                        <ImageListItem key={image}>
+                                            <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+                                                <OptimizedImage
+                                                    src={`/uploads/${image}`}
+                                                    alt={image}
+                                                    fill
+                                                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 16vw"
+                                                    style={{
+                                                        objectFit: 'cover',
+                                                        cursor: 'pointer',
+                                                        opacity: selectedImages.includes(image) ? 0.5 : 1,
+                                                    }}
+                                                    onClick={(event) => handleImageClick(image, event)}
+                                                    loading="lazy"
+                                                    quality={60}
+                                                />
+                                            </Box>
+                                            <ImageListItemBar
+                                                title={image}
+                                                actionIcon={
+                                                    <Checkbox
+                                                        checked={selectedImages.includes(image)}
+                                                        onChange={(e) => {
+                                                            e.stopPropagation();
+                                                            handleImageSelect(image);
+                                                        }}
+                                                        sx={{ color: 'rgba(255, 255, 255, 0.54)' }}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                }
+                                                sx={{
+                                                    '.MuiImageListItemBar-title': {
+                                                        fontSize: '0.7rem',
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis'
+                                                    }
                                                 }}
-                                                sx={{ color: 'rgba(255, 255, 255, 0.54)' }}
-                                                onClick={(e) => e.stopPropagation()}
                                             />
-                                        }
-                                        sx={{
-                                            '.MuiImageListItemBar-title': {
-                                                fontSize: '0.7rem',
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis'
-                                            }
-                                        }}
-                                    />
-                                </ImageListItem>
-                            ))}
-                        </ImageList>
+                                        </ImageListItem>
+                                    ))}
+                                </ImageList>
+
+                                {/* Pagination */}
+                                {totalPages > 1 && (
+                                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                        <Pagination
+                                            count={totalPages}
+                                            page={currentPage}
+                                            onChange={handlePageChange}
+                                            color="primary"
+                                            showFirstButton
+                                            showLastButton
+                                        />
+                                    </Box>
+                                )}
+                            </>
+                        )}
                         <Button
                             variant="contained"
                             color="error"
